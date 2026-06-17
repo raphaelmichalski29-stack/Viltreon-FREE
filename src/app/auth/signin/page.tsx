@@ -32,15 +32,9 @@ function SignInInner() {
 
   useEffect(() => {
     if (status === "authenticated" && session) {
-      if (
-        session.user?.accessDisabled === false &&
-        (session.user?.subscriptionStatus === "active" ||
-          session.user?.subscriptionStatus === "trialing")
-      ) {
-        router.replace("/dashboard")
-      } else {
-        router.replace("/setup")
-      }
+      // Self-hosted build has no paywall — send authenticated users to setup,
+      // which forwards to the dashboard once Gmail + key + labels are done.
+      router.replace("/setup")
     }
   }, [status, session, router])
 

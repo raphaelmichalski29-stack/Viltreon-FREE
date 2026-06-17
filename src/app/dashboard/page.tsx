@@ -43,46 +43,6 @@ function DashboardPageInner() {
     }
   }, [status, router])
 
-  // Stripe checkout success redirects back here with ?subscribed=1. The
-  // checkout.session.completed webhook fires async, so the user's JWT
-  // is still pre-payment when they land. Poll verify-subscription a few
-  // times to let Stripe's webhook catch up, then refresh the session so
-  // the API stops returning 402.
-  useEffect(() => {
-    if (status !== "authenticated") return
-    if (searchParams.get("subscribed") !== "1") return
-    if (handledSubscribedRef.current) return
-    handledSubscribedRef.current = true
-
-    let cancelled = false
-    ;(async () => {
-      for (let attempt = 0; attempt < 6 && !cancelled; attempt++) {
-        try {
-          const res = await fetch("/api/user/verify-subscription", { method: "POST" })
-          const data = await res.json().catch(() => ({}))
-          if (res.ok && data.active) {
-            await updateSession()
-            toast({ title: "Subscription active", variant: "success" })
-            break
-          }
-        } catch {
-          // network blip — retry
-        }
-        await new Promise((r) => setTimeout(r, 1500))
-      }
-      if (!cancelled) {
-        // Strip the query param so a page refresh doesn't re-trigger.
-        router.replace("/dashboard")
-      }
-    })()
-
-    return () => {
-      cancelled = true
-    }
-    // updateSession intentionally omitted — see handledSubscribedRef above.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [status, searchParams, router])
-
   useEffect(() => {
     if (status !== "authenticated") return
     fetchStats()
@@ -138,13 +98,6 @@ function DashboardPageInner() {
     setSorting(true)
     try {
       const res = await fetch("/api/sort/inbox", { method: "POST" })
-      // 402 = trial expired / subscription required. Bounce the user to the
-      // setup flow which has the subscribe UI inline, rather than just
-      // showing a cryptic toast.
-      if (res.status === 402) {
-        router.push("/setup?expired=1")
-        return
-      }
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || "Failed to start sort")
 
@@ -272,37 +225,8 @@ function DashboardPageInner() {
     },
   ]
 
-  const subStatus = settings?.subscriptionStatus
-  // Red "Trial ended" banner once the server-side writeback has flipped
-  // status to "expired". Trialing users get no banner: their card is on
-  // file and they are charged automatically when the trial ends.
-  const trialBanner =
-    !loading && settings ? (
-      subStatus === "expired" ? (
-        <div className="flex items-center justify-between gap-4 bg-white p-4 border-2 border-[#2C2A28] border-l-[6px] border-l-[#D86B5A] rounded-[255px_15px_225px_15px/15px_225px_15px_255px]">
-          <div className="flex items-start gap-3">
-            <AlertTriangle className="mt-0.5 h-5 w-5" style={{ color: "#D86B5A" }} />
-            <div>
-              <p className="text-sm font-medium text-[#2C2A28]">Your free trial has ended</p>
-              <p className="mt-1 text-xs text-[#5A5753]">
-                Subscribe to keep sorting your inbox. Your settings and preferences are preserved.
-              </p>
-            </div>
-          </div>
-          <button
-            className="bg-[#D86B5A] text-white px-4 py-2 text-sm font-medium rounded-[8px_30px_12px_25px] border border-transparent hover:-translate-y-0.5 hover:rotate-[-1deg] hover:shadow-[4px_8px_15px_rgba(216,107,90,0.2)] hover:rounded-[25px_12px_30px_8px] transition-all whitespace-nowrap"
-            onClick={() => router.push("/setup?expired=1")}
-          >
-            Subscribe
-          </button>
-        </div>
-      ) : null
-    ) : null
-
   return (
     <div className="main-content relative z-10 w-full max-w-5xl mx-auto space-y-12 pb-12">
-      {trialBanner}
-
       {/* Header */}
       <header className="flex justify-between items-end">
         <div>

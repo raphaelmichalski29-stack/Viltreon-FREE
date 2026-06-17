@@ -74,30 +74,6 @@ export default function SettingsPage() {
     }
   }
 
-  async function handleBillingPortal() {
-    setPortalLoading(true)
-    try {
-      const res = await fetch("/api/stripe/portal", { method: "POST" })
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.error || "Portal error")
-      window.location.href = data.url
-    } catch (err) {
-      toast({ title: "Billing portal error", description: String(err), variant: "destructive" })
-    } finally {
-      setPortalLoading(false)
-    }
-  }
-
-  function getStatusBadge(status?: string | null) {
-    switch (status) {
-      case "active": return { label: "Active", variant: "success" as const }
-      case "trialing": return { label: "Trialing", variant: "secondary" as const }
-      case "past_due": return { label: "Past Due", variant: "destructive" as const }
-      case "canceled": return { label: "Canceled", variant: "outline" as const }
-      default: return { label: "Inactive", variant: "outline" as const }
-    }
-  }
-
   async function handleToggleAutoSort(enabled: boolean) {
     try {
       const res = await fetch("/api/user/settings", {
@@ -222,46 +198,6 @@ export default function SettingsPage() {
         <h1 className="text-2xl font-bold">Settings</h1>
         <p className="text-sm text-muted-foreground">Manage your account and preferences</p>
       </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg flex items-center gap-2">
-            <CreditCard className="h-5 w-5" />
-            Subscription
-          </CardTitle>
-          <CardDescription>
-            Your current plan and billing status
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="font-medium text-sm">Status</p>
-              <p className="text-xs text-muted-foreground mt-1">
-                {settings?.subscriptionEndsAt
-                  ? `Renews ${new Date(settings.subscriptionEndsAt).toLocaleDateString()}`
-                  : "No active subscription"}
-              </p>
-            </div>
-            <Badge variant={getStatusBadge(settings?.subscriptionStatus).variant}>
-              {getStatusBadge(settings?.subscriptionStatus).label}
-            </Badge>
-          </div>
-          <Button
-            variant="outline"
-            className="w-full"
-            onClick={handleBillingPortal}
-            disabled={portalLoading || !settings?.subscriptionStatus}
-          >
-            {portalLoading ? (
-              <Loader2 className="h-4 w-4 animate-spin mr-2" />
-            ) : (
-              <CreditCard className="h-4 w-4 mr-2" />
-            )}
-            Manage Billing
-          </Button>
-        </CardContent>
-      </Card>
 
       <Card>
         <CardHeader>
