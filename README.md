@@ -2,7 +2,7 @@
 
 **The open-source, self-hosted AI email sorter for Gmail.** Your email never leaves
 infrastructure you control — no third-party SaaS sees your inbox. You bring your own
-Google AI key; Viltreon reads incoming mail and files it into your labels automatically.
+Groq API key (BYOK); Viltreon reads incoming mail and files it into your labels automatically.
 
 > ⚠️ **Running 24/7 needs an always-on server.** A localhost install only sorts mail
 > while your computer and the app are running. Gmail's real-time push (Google Cloud
@@ -70,7 +70,7 @@ npm run worker
 ```
 
 Open <http://localhost:3000>, sign in with the Google account you added as a test user,
-add your Google AI (Gemini) key in settings, and define your sorting rules.
+add your Groq API key in settings, and define your sorting rules.
 
 ### Prerequisites
 

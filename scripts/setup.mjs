@@ -163,13 +163,13 @@ NEXT_PUBLIC_BUG_REPORT_URL=
   ok(`OK  Wrote ${ENV_PATH}`)
 
   head('Set up the database & app')
-  if (!existsSync(join(ROOT, 'node_modules')) && (await yes('Install dependencies now? (npm install)', true))) {
+  if (!existsSync(join(ROOT, 'node_modules'))) {
+    log('Installing dependencies (npm install)...')
     run('npm', ['install'])
   }
-  if (await yes('Create the database now? (prisma db push)', true)) {
-    if (!run('npx', ['prisma', 'db', 'push'])) {
-      warn('    prisma db push failed. Check DATABASE_URL, then run:  npx prisma db push')
-    }
+  log('Creating the database (prisma db push)...')
+  if (!run('npx', ['prisma', 'db', 'push'])) {
+    warn('    prisma db push failed. Check DATABASE_URL, then run:  npx prisma db push')
   }
 
   head('Done')
@@ -193,7 +193,7 @@ NEXT_PUBLIC_BUG_REPORT_URL=
   }
   log('')
 
-  if (await yes('Start the app now? (npm run dev)', false)) { rl.close(); run('npm', ['run', 'dev']); return }
+  if (await yes('Start the app now? (npm run dev)', true)) { rl.close(); run('npm', ['run', 'dev']); return }
   rl.close()
 }
 
