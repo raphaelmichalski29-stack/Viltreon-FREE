@@ -172,6 +172,13 @@ NEXT_PUBLIC_BUG_REPORT_URL=
     warn('    prisma db push failed. Check DATABASE_URL, then run:  npx prisma db push')
   }
 
+  log('Registering the "viltreon" command (npm link)...')
+  if (run('npm', ['link'])) {
+    ok('OK  "viltreon" is now available from any terminal.')
+  } else {
+    warn('    Could not register globally (permissions?). Use "npm run viltreon", or ".\\viltreon" from this folder.')
+  }
+
   head('Done')
   ok('Setup complete.')
   log('')

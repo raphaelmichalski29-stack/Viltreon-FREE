@@ -39,15 +39,16 @@ npm run setup      # installs deps, configures, creates the SQLite DB, and can l
 
 ### Running it day-to-day
 
-The `viltreon` command is smart — the **first** run does setup, **every run after** starts the app:
+`npm run setup` registers a global **`viltreon`** command (via `npm link`). After setup,
+from any terminal:
 
 ```bash
-npm run viltreon      # first time -> setup wizard;  after that -> starts http://localhost:3000
-npm run setup         # re-run setup any time (e.g. to change your keys)
+viltreon            # starts the app at http://localhost:3000 (runs setup first if needed)
+viltreon setup      # re-run setup, e.g. to change your keys
 ```
 
-Prefer to type just `viltreon` from anywhere? Link it once with `npm link`, then run
-`viltreon` (or `viltreon setup` to reconfigure).
+If `viltreon` isn't found: use `npm run viltreon` instead, or re-run `npm link` from the
+project folder. (In PowerShell, a local script must be called as `.\viltreon`.)
 
 `setup` is an interactive wizard. It will:
 
