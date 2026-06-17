@@ -51,7 +51,7 @@ model User {
   stripeSubscriptionId     String?
   subscriptionStatus       String? // trialing | active | past_due | canceled | incomplete
   subscriptionEndsAt       DateTime?
-  accessDisabled           Boolean   @default(true)
+  accessDisabled           Boolean   @default(false)
   emailsProcessedThisMonth Int       @default(0)
   emailMonthStartAt        DateTime?
   archiveSorted            Boolean   @default(false)

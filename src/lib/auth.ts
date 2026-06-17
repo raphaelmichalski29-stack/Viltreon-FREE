@@ -142,7 +142,7 @@ export const authOptions: AuthOptions = {
         await prisma.user.update({
           where: { id: user.id },
           data: {
-            accessDisabled: true,
+            accessDisabled: false,
             emailMonthStartAt: new Date(),
             emailsProcessedThisMonth: 0,
           },

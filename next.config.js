@@ -6,10 +6,6 @@ const requiredEnvs = [
   'DATABASE_URL',
   'ENCRYPTION_KEY',
   'ENCRYPTION_SALT',
-  'STRIPE_SECRET_KEY',
-  'STRIPE_WEBHOOK_SECRET',
-  'STRIPE_MONTHLY_PRICE_ID',
-  'STRIPE_ANNUAL_PRICE_ID',
 ]
 
 for (const env of requiredEnvs) {

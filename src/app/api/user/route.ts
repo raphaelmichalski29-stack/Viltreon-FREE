@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { getToken, invalidateToken } from "@/lib/secure-token"
 import { prisma } from "@/lib/db"
-import { getStripe } from "@/lib/stripe"
 import { checkRateLimit, rateLimitKey } from "@/lib/rate-limit"
 import { apiError } from "@/lib/api-error"
 
@@ -30,24 +29,14 @@ export async function DELETE(request: NextRequest) {
 
     const user = await prisma.user.findUnique({
       where: { id: token.sub },
-      select: { id: true, stripeSubscriptionId: true, stripeCustomerId: true },
+      select: { id: true },
     })
     if (!user) {
       // Already gone — make this idempotent.
       return NextResponse.json({ success: true })
     }
 
-    // 1) Cancel Stripe subscription (best-effort).
-    if (user.stripeSubscriptionId) {
-      try {
-        await getStripe().subscriptions.cancel(user.stripeSubscriptionId)
-      } catch (err) {
-        console.error("[user.DELETE] Stripe cancel failed (continuing):",
-          err instanceof Error ? err.message : err)
-      }
-    }
-
-    // 2) Stop Gmail push watch (best-effort). Use try/import so a Gmail outage
+    // Stop Gmail push watch (best-effort). Use try/import so a Gmail outage
     //    or revoked token doesn't block deletion.
     try {
       const { getGmailClient } = await import("@/lib/gmail")
