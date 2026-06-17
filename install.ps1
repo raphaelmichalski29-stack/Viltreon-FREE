@@ -1,12 +1,12 @@
 # Viltreon one-command installer (Windows / PowerShell).
-#   irm https://raw.githubusercontent.com/<you>/viltreon/main/install.ps1 | iex
+#   irm https://raw.githubusercontent.com/raphaelmichalski29-stack/Viltreon-FREE/main/install.ps1 | iex
 #
 # Clones the repo and runs the setup wizard. The wizard is interactive (Google
 # sign-in can't be automated), but this is the only command you run.
 $ErrorActionPreference = 'Stop'
 
 # >>> After publishing, set this to your repo's clone URL <<<
-$Repo = 'https://github.com/<you>/viltreon.git'
+$Repo = 'https://github.com/raphaelmichalski29-stack/Viltreon-FREE.git'
 $Dir  = 'viltreon'
 
 if (-not (Get-Command git  -ErrorAction SilentlyContinue)) { throw 'git is required.' }

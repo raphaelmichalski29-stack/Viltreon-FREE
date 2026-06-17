@@ -18,12 +18,12 @@ Once the repo is public, this clones it and launches setup in a single line:
 
 **macOS / Linux**
 ```bash
-curl -fsSL https://raw.githubusercontent.com/<you>/viltreon/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/raphaelmichalski29-stack/Viltreon-FREE/main/install.sh | bash
 ```
 
 **Windows (PowerShell)**
 ```powershell
-irm https://raw.githubusercontent.com/<you>/viltreon/main/install.ps1 | iex
+irm https://raw.githubusercontent.com/raphaelmichalski29-stack/Viltreon-FREE/main/install.ps1 | iex
 ```
 
 The wizard is still interactive — Google sign-in can't be automated — but that's the only
@@ -32,7 +32,7 @@ command you run.
 ## Quick start (manual)
 
 ```bash
-git clone https://github.com/<you>/viltreon.git viltreon
+git clone https://github.com/raphaelmichalski29-stack/Viltreon-FREE.git viltreon
 cd viltreon
 npm run setup      # installs deps, configures, creates the SQLite DB, and can launch the app
 ```
