@@ -1,0 +1,15 @@
+node_modules/
+.next/
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+.env
+.env.local
+.env.production
+.env.production.template
+out/
+logs/
+tsconfig.tsbuildinfo
+.claude/
+New Text Document.txt

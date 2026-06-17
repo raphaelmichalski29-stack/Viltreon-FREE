@@ -1,0 +1,299 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Viltreon — Cinematic hero</title>
+<!--
+  Scroll narrative:
+   1 FLY      fly forward through a storm of emails + light
+   2 READ     one email halts; its words resolve from faint to sharp as you scroll
+   3 BLOW-BY  the email rushes past the camera
+   4 SLAM     camera tilts down; every email rushes down and slams into place
+   5 SORT     in a flurry they sort into the four colored labels  ("It sorts itself.")
+   6 SITE     the real site begins, Lenis smooth scroll, sections fade up
+  WebGL + UnrealBloom · Lenis · reduced-motion + no-WebGL fallbacks.
+-->
+<link href="https://api.fontshare.com/v2/css?f[]=satoshi@900,700,500&f[]=general-sans@400,500,600&display=swap" rel="stylesheet">
+<style>
+  :root{--red:#ea4335;--blue:#4285f4;--green:#34a853;--yellow:#fbbc05;--muted:#9aa3b2;
+    --display:"Satoshi",-apple-system,"Segoe UI",sans-serif;--sans:"General Sans",-apple-system,"Segoe UI",sans-serif;}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:#03040a;color:#eef1f6;font-family:var(--sans);-webkit-font-smoothing:antialiased}
+  .scroll{height:840vh;position:relative}
+  .pin{position:sticky;top:0;height:100vh;overflow:hidden}
+  #c{position:absolute;inset:0;width:100%;height:100%;display:block}
+  .grade{position:absolute;inset:0;pointer-events:none;box-shadow:inset 0 0 260px 90px rgba(0,0,0,.92);
+     background:radial-gradient(130% 95% at 50% 48%,rgba(20,28,48,0) 28%,rgba(3,4,10,.6) 92%)}
+  .grain{position:absolute;inset:0;pointer-events:none;opacity:.045;mix-blend-mode:overlay;
+     background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+
+  .layer{position:absolute;inset:0;display:grid;place-content:center;text-align:center;padding:0 24px;pointer-events:none;will-change:opacity,transform}
+  .layer::before{content:"";position:absolute;inset:0;background:radial-gradient(60% 46% at 50% 50%,rgba(4,5,10,.6),transparent 72%);pointer-events:none}
+  .eyebrow{font-weight:600;font-size:13px;letter-spacing:.36em;text-transform:uppercase;color:#9fc0ff}
+  h1{font-family:var(--display);font-weight:900;font-size:clamp(40px,7.5vw,96px);line-height:.94;letter-spacing:-.045em;margin:14px 0 0;
+     background:linear-gradient(180deg,#fff,#c6d1e6);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .chips{display:flex;gap:11px;justify-content:center;flex-wrap:wrap;margin-top:24px}
+  .chip{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.15);border-radius:999px;padding:8px 15px;font-size:14px;color:#dde3ee}
+  .chip .d{width:10px;height:10px;border-radius:3px}
+  .cta{display:flex;gap:14px;justify-content:center;margin-top:28px}
+  .btn{font-weight:600;font-size:15px;border:none;cursor:pointer;border-radius:12px;padding:14px 26px;font-family:var(--sans);transition:.2s}
+  .btn--p{background:#fff;color:#0a0c12}.btn--p:hover{transform:translateY(-2px)}
+  .btn--g{background:rgba(255,255,255,.05);color:#fff;border:1px solid rgba(255,255,255,.22)}.btn--g:hover{border-color:#fff}
+
+  /* the email that stops + its words resolve */
+  #readcard{position:absolute;inset:0;display:grid;place-content:center;pointer-events:none;opacity:0;will-change:opacity,transform;perspective:1200px}
+  .rc{width:min(540px,88vw);background:#fbfcfe;border-radius:22px;box-shadow:0 50px 120px -40px rgba(0,0,0,.9);overflow:hidden;text-align:left;transform-style:preserve-3d}
+  .rc-top{height:6px;background:var(--blue)}
+  .rc-head{display:flex;align-items:center;gap:13px;padding:20px 24px 14px;border-bottom:1px solid #eef0f4}
+  .rc-av{width:44px;height:44px;border-radius:50%;background:#1b1e24;color:#fff;display:grid;place-items:center;font-family:var(--display);font-weight:700;font-size:18px}
+  .rc-from{font-family:var(--display);font-weight:700;color:#1b1e24;font-size:16px}
+  .rc-to{color:#9aa1ad;font-size:13px;margin-top:1px}
+  .rc-time{margin-left:auto;color:#aeb4bf;font-size:13px}
+  .rc-msg{padding:22px 24px 26px;will-change:opacity,filter}
+  .rc-subj{font-family:var(--display);font-weight:700;color:#15171c;font-size:26px;letter-spacing:-.02em;margin-bottom:12px}
+  .rc-msg p{color:#3a3f48;font-size:16px;line-height:1.62;margin-top:10px}
+
+  .hint{position:absolute;left:50%;bottom:28px;transform:translateX(-50%);color:#6b7486;font-size:12px;letter-spacing:.22em;text-transform:uppercase;display:flex;flex-direction:column;align-items:center;gap:9px;animation:bob 1.8s ease-in-out infinite}
+  @keyframes bob{0%,100%{transform:translate(-50%,0)}50%{transform:translate(-50%,7px)}}
+
+  /* real site sections (Lenis handoff) */
+  .site{position:relative;background:linear-gradient(180deg,#03040a 0%,#070a12 30%,#0b0f1a 100%)}
+  .sec{min-height:92vh;display:grid;place-content:center;text-align:center;padding:120px 24px;gap:18px}
+  .reveal{opacity:0;transform:translateY(40px);transition:opacity .9s cubic-bezier(.22,1,.36,1),transform .9s cubic-bezier(.22,1,.36,1)}
+  .reveal.in{opacity:1;transform:none}
+  .sec .lab2{font-weight:600;font-size:13px;letter-spacing:.3em;text-transform:uppercase;color:#9fc0ff}
+  .sec h2{font-family:var(--display);font-weight:700;font-size:clamp(30px,5vw,56px);letter-spacing:-.03em}
+  .sec p.s{color:var(--muted);max-width:52ch;margin:0 auto;font-size:18px}
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;max-width:980px;margin:22px auto 0}
+  .gcard{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.09);border-radius:16px;padding:24px;text-align:left}
+  .gcard .gd{width:34px;height:34px;border-radius:9px;display:grid;place-items:center;margin-bottom:14px}
+  .gcard h3{font-family:var(--display);font-weight:700;font-size:19px;letter-spacing:-.01em}
+  .gcard p{color:var(--muted);font-size:14px;margin-top:7px}
+  @media(max-width:760px){.grid3{grid-template-columns:1fr}}
+
+  body.reduced #c,body.nogl #c{display:none}
+  body.reduced .hint,body.nogl .hint{display:none}
+  body.reduced #L_sort,body.nogl #L_sort{opacity:1!important}
+</style>
+</head>
+<body>
+<div class="scroll">
+  <div class="pin">
+    <canvas id="c"></canvas>
+    <div class="grade"></div><div class="grain"></div>
+
+    <div class="layer" id="L_fly"><div class="inner"><span class="eyebrow">Every email. Every day.</span></div></div>
+
+    <div id="readcard"><div class="rc">
+      <div class="rc-top"></div>
+      <div class="rc-head"><div class="rc-av">V</div><div><div class="rc-from">Viltreon</div><div class="rc-to">to you</div></div><div class="rc-time">now</div></div>
+      <div class="rc-msg" id="rcmsg">
+        <div class="rc-subj">Refresh your inbox.</div>
+        <p>Every new email, read and filed the moment it lands. Open it once and it never piles up again.</p>
+        <p>No rules to babysit, no backlog. It just keeps working, quietly, in the background.</p>
+      </div>
+    </div></div>
+
+    <div class="layer" id="L_sort"><div class="inner">
+      <span class="eyebrow">And then</span>
+      <h1>It sorts itself.</h1>
+      <div class="chips">
+        <span class="chip"><span class="d" style="background:var(--red)"></span>Important</span>
+        <span class="chip"><span class="d" style="background:var(--blue)"></span>Finance</span>
+        <span class="chip"><span class="d" style="background:var(--green)"></span>Receipts</span>
+        <span class="chip"><span class="d" style="background:var(--yellow)"></span>Newsletters</span>
+      </div>
+      <div class="cta"><a class="btn btn--p">Start free</a><a class="btn btn--g">See pricing</a></div>
+    </div></div>
+
+    <div class="hint" id="hint">Scroll<span style="font-size:16px">&#8595;</span></div>
+  </div>
+</div>
+
+<!-- the real website begins -->
+<div class="site">
+  <section class="sec"><div class="reveal"><span class="lab2">What you get</span>
+    <h2>An inbox that runs itself.</h2>
+    <p class="s">The four colors you just watched are your labels. Every message lands in the right one, the second it arrives.</p>
+    <div class="grid3">
+      <div class="gcard"><div class="gd" style="background:rgba(234,67,53,.16)"><span style="color:#ea4335">&#9889;</span></div><h3>Sorted instantly</h3><p>Filed the moment it lands. You just watch it stay clean.</p></div>
+      <div class="gcard"><div class="gd" style="background:rgba(52,168,83,.16)"><span style="color:#34a853">&#128274;</span></div><h3>Private by default</h3><p>We sort it without keeping it. Your inbox stays yours.</p></div>
+      <div class="gcard"><div class="gd" style="background:rgba(251,188,5,.18)"><span style="color:#fbbc05">&#10003;</span></div><h3>Set and forget</h3><p>No rules to babysit. It runs quietly, forever.</p></div>
+    </div>
+  </div></section>
+  <section class="sec"><div class="reveal"><span class="lab2">Ready when you are</span>
+    <h2>Let your inbox sort itself.</h2>
+    <p class="s">Set it up in a couple of minutes, then never file an email again.</p>
+    <div class="cta"><a class="btn btn--p">Start free</a><a class="btn btn--g">See pricing</a></div>
+  </div></section>
+</div>
+
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.161.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.161.0/examples/jsm/"
+}}
+</script>
+<script type="module">
+import * as THREE from 'three';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+
+const lerp=(a,b,t)=>a+(b-a)*t, clamp=(v,a,b)=>Math.min(b,Math.max(a,v)),
+      smooth=t=>{t=clamp(t,0,1);return t*t*(3-2*t);},
+      backOut=t=>{const c=1.7;t=clamp(t,0,1);return 1+(c+1)*Math.pow(t-1,3)+c*Math.pow(t-1,2);},
+      win=(p,a,b,c,d)=>p<a||p>d?0:p<b?smooth((p-a)/(b-a)):p<c?1:1-smooth((p-c)/(d-c));
+
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const coarse=matchMedia('(pointer: coarse)').matches;
+
+// Lenis smooth scroll (graceful if it fails)
+let lenis=null;
+(async()=>{ if(reduce)return; try{ const m=await import('https://cdn.jsdelivr.net/npm/lenis@1.1.14/+esm');
+  lenis=new m.default({lerp:0.09,wheelMultiplier:1}); window.__lenis=lenis; function raf(t){lenis.raf(t);requestAnimationFrame(raf);} requestAnimationFrame(raf);
+}catch(e){ console.warn('lenis off',e); } })();
+
+// scroll reveals for the site sections
+new IntersectionObserver((es)=>es.forEach(e=>{if(e.isIntersecting)e.target.classList.add('in');}),{threshold:.2})
+  .observe && document.querySelectorAll('.reveal').forEach(el=>{
+    new IntersectionObserver((es,o)=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');o.unobserve(e.target);}}),{threshold:.2}).observe(el);
+  });
+
+if(reduce) document.body.classList.add('reduced');
+else { try{ boot(); }catch(e){ console.error('[hero] init failed',e); document.body.classList.add('nogl'); } }
+
+function boot(){
+  const canvas=document.getElementById('c');
+  const renderer=new THREE.WebGLRenderer({canvas,antialias:true});
+  renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+  renderer.setSize(innerWidth,innerHeight,false);
+  const scene=new THREE.Scene(); scene.fog=new THREE.FogExp2(0x04060e,0.00030);
+  const camera=new THREE.PerspectiveCamera(60,innerWidth/innerHeight,1,8000);
+  const world=new THREE.Group(); scene.add(world);
+
+  const dot=(()=>{const s=128,cv=document.createElement('canvas');cv.width=cv.height=s;const x=cv.getContext('2d');
+    const g=x.createRadialGradient(s/2,s/2,0,s/2,s/2,s/2);g.addColorStop(0,'#fff');g.addColorStop(.25,'rgba(255,255,255,.92)');
+    g.addColorStop(.55,'rgba(255,255,255,.25)');g.addColorStop(1,'rgba(255,255,255,0)');x.fillStyle=g;x.fillRect(0,0,s,s);
+    return new THREE.CanvasTexture(cv);})();
+
+  // particles
+  const N=coarse?1500:3400, pos=new Float32Array(N*3), col=new Float32Array(N*3);
+  const tints=[[1,1,1],[1,1,1],[1,1,1],[1,1,1],[.95,.32,.26],[.30,.55,.97],[.24,.69,.36],[.99,.76,.06]];
+  for(let i=0;i<N;i++){pos[i*3]=(Math.random()*2-1)*2100;pos[i*3+1]=(Math.random()*2-1)*1400;pos[i*3+2]=-Math.random()*5400+500;
+    const t=tints[(Math.random()*tints.length)|0];col[i*3]=t[0];col[i*3+1]=t[1];col[i*3+2]=t[2];}
+  const pg=new THREE.BufferGeometry();
+  pg.setAttribute('position',new THREE.BufferAttribute(pos,3));pg.setAttribute('color',new THREE.BufferAttribute(col,3));
+  const points=new THREE.Points(pg,new THREE.PointsMaterial({size:6.5,map:dot,vertexColors:true,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,sizeAttenuation:true}));
+  world.add(points);
+
+  const nebTint=[0xff5a4d,0x5b8dff,0x46d07e,0xffd24d,0x9aa9ff];
+  for(let i=0;i<6;i++){const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:dot,color:nebTint[i%5],transparent:true,opacity:.12,blending:THREE.AdditiveBlending,depthWrite:false}));
+    sp.position.set((Math.random()*2-1)*1600,(Math.random()*2-1)*1000,-800-Math.random()*3400);sp.scale.setScalar(720+Math.random()*900);world.add(sp);}
+
+  function rr(x,a,b,w,h,r){x.beginPath();x.moveTo(a+r,b);x.arcTo(a+w,b,a+w,b+h,r);x.arcTo(a+w,b+h,a,b+h,r);x.arcTo(a,b+h,a,b,r);x.arcTo(a,b,a+w,b,r);x.closePath();}
+  function cardTex(d){const W=1024,H=620,cv=document.createElement('canvas');cv.width=W;cv.height=H;const x=cv.getContext('2d');
+    rr(x,16,16,W-32,H-32,40);x.fillStyle='#f7f8fb';x.fill();
+    x.save();rr(x,16,16,W-32,H-32,40);x.clip();x.fillStyle=d.color;x.fillRect(16,16,W-32,18);x.restore();
+    x.fillStyle=d.color;x.beginPath();x.arc(110,150,52,0,7);x.fill();
+    x.fillStyle='#fff';x.font='600 50px Inter,Segoe UI,sans-serif';x.textAlign='center';x.textBaseline='middle';x.fillText(d.initial,110,153);
+    x.textAlign='left';x.textBaseline='alphabetic';x.fillStyle='#1b1e24';x.font='600 44px Inter,Segoe UI,sans-serif';x.fillText(d.name,192,138);
+    x.fillStyle='#9aa1ad';x.font='400 32px Inter,Segoe UI,sans-serif';x.textAlign='right';x.fillText(d.time,W-56,138);x.textAlign='left';
+    x.fillStyle=d.color;x.beginPath();x.arc(208,182,8,0,7);x.fill();
+    x.fillStyle='#23272f';x.font='600 38px Inter,Segoe UI,sans-serif';x.fillText(d.subject,230,196);
+    x.fillStyle='#aeb4bf';x.font='400 33px Inter,Segoe UI,sans-serif';x.fillText(d.preview,72,272);
+    x.fillStyle='#eceff4';for(let i=0;i<3;i++){rr(x,72,312+i*46,[840,720,560][i],20,10);x.fill();}
+    x.fillStyle=d.color;x.globalAlpha=.14;rr(x,72,512,260,64,32);x.fill();x.globalAlpha=1;
+    x.fillStyle=d.color;x.beginPath();x.arc(108,544,9,0,7);x.fill();x.font='600 28px Inter,Segoe UI,sans-serif';x.fillText(d.label,130,554);
+    const t=new THREE.CanvasTexture(cv);t.anisotropy=4;return t;}
+  const C={red:'#ea4335',blue:'#4285f4',green:'#34a853',yellow:'#fbbc05'};
+  const DATA=[
+    {name:'Stripe',initial:'S',color:C.green,subject:'Your payout is on the way',preview:'$1,284.00 arrives in 1-2 days.',time:'9:41',label:'Receipts'},
+    {name:'Sarah Chen',initial:'S',color:C.red,subject:'Re: Board deck - final',preview:'Looks great. One note on slide 12.',time:'8:12',label:'Important'},
+    {name:'RBC',initial:'R',color:C.blue,subject:'Statement ready to view',preview:'Your March statement is available.',time:'Mar 3',label:'Finance'},
+    {name:'The Hustle',initial:'H',color:C.yellow,subject:'AI just ate another industry',preview:'Plus: the chart everyone argues about.',time:'7:30',label:'Newsletters'},
+    {name:'Notion',initial:'N',color:C.blue,subject:'You were mentioned',preview:'@you in "Q2 launch plan".',time:'Tue',label:'Finance'},
+    {name:'Amazon',initial:'A',color:C.green,subject:'Order delivered',preview:'Left at the front door.',time:'Mon',label:'Receipts'},
+    {name:'Linear',initial:'L',color:C.red,subject:'Assigned to you: VIL-204',preview:'Due Friday - sorting webhook.',time:'11:02',label:'Important'},
+    {name:'Substack',initial:'B',color:C.yellow,subject:'This week in design',preview:'5 sites worth your scroll.',time:'Wed',label:'Newsletters'},
+  ];
+  const colOrder=[C.red,C.blue,C.green,C.yellow];
+  const texs={}; DATA.forEach(d=>{const k=d.color+d.name; if(!texs[k])texs[k]=cardTex(d);});
+  const geo=new THREE.PlaneGeometry(176,107);
+  const cards=[]; const rowCount={};
+  for(let i=0;i<24;i++){const d=DATA[i%DATA.length];
+    const m=new THREE.Mesh(geo,new THREE.MeshBasicMaterial({map:texs[d.color+d.name],transparent:true,opacity:1,color:0xd2d7df}));
+    const fx=(Math.random()*2-1)*740, fy=(Math.random()*2-1)*460, fz=-120-Math.random()*2300, fr=(Math.random()*2-1)*0.22;
+    m.position.set(fx,fy,fz); m.rotation.z=fr;
+    const ci=colOrder.indexOf(d.color); const cc=ci<0?(i%4):ci; rowCount[cc]=rowCount[cc]||0; const row=rowCount[cc]++;
+    const sx=(cc-1.5)*250, sy=290-row*116, sz=-30-row*8;
+    m.userData={fx,fy,fz,fr,sx,sy,sz, rsx:sx+(Math.random()*2-1)*60, rsy:sy+880+Math.random()*200, rsz:sz,
+                stag:(cc*0.02+row*0.012), sp:(Math.random()*2-1)*0.0007, bob:Math.random()*6};
+    world.add(m); cards.push(m);
+  }
+
+  const composer=new EffectComposer(renderer); composer.setSize(innerWidth,innerHeight);
+  composer.addPass(new RenderPass(scene,camera));
+  const bloom=new UnrealBloomPass(new THREE.Vector2(innerWidth,innerHeight), coarse?0.45:0.6, 0.7, 0.9);
+  composer.addPass(bloom);
+
+  let prog=0,target=0,mx=0,my=0,mxT=0,myT=0;
+  const scroller=document.querySelector('.scroll');
+  const L_fly=document.getElementById('L_fly'),L_sort=document.getElementById('L_sort'),
+        readcard=document.getElementById('readcard'),rcmsg=document.getElementById('rcmsg'),hint=document.getElementById('hint');
+  function onScroll(){const r=scroller.getBoundingClientRect();const range=scroller.offsetHeight-innerHeight;target=clamp((-r.top)/range,0,1);}
+  addEventListener('scroll',onScroll,{passive:true}); onScroll();
+  addEventListener('pointermove',e=>{mxT=e.clientX/innerWidth*2-1;myT=e.clientY/innerHeight*2-1;});
+  addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight,false);composer.setSize(innerWidth,innerHeight);});
+
+  // piecewise camera
+  function camZ(p){ if(p<0.18)return lerp(1360,-30,smooth(p/0.18));
+    if(p<0.44)return lerp(-30,-30,(p-0.18)/0.26);             // hold (read)
+    if(p<0.52)return lerp(-30,150,smooth((p-0.44)/0.08));     // blow-by surge
+    if(p<0.74)return lerp(150,880,smooth((p-0.52)/0.22));     // pull back for slam
+    return lerp(880,840,(p-0.74)/0.26); }
+  function camY(p){ if(p<0.52)return Math.sin(p*9)*4; return lerp(0,230,smooth((p-0.52)/0.22)); }
+  function lookY(p){ if(p<0.52)return 0; return lerp(0,-280,smooth((p-0.52)/0.22)); }
+
+  function tick(t){
+    requestAnimationFrame(tick);
+    prog+=(target-prog)*0.06; const p=prog;
+    mx+=(mxT-mx)*0.05; my+=(myT-my)*0.05;
+
+    camera.position.set(mx*70, camY(p)-my*46, camZ(p));
+    camera.lookAt(mx*26, lookY(p)-my*18, camera.position.z-700);
+    world.rotation.y=mx*0.035+Math.sin(t*0.00015)*0.02;
+    points.rotation.z=t*0.00001;
+
+    // cards
+    const slam=smooth((p-0.55)/0.19);      // slam-into-slot
+    const gather=smooth((p-0.50)/0.05);    // rush up to start point
+    const dimRead=1-0.72*win(p,0.20,0.27,0.42,0.48); // dim during the READ
+    for(const c of cards){const u=c.userData;
+      if(p<0.50){ c.position.set(u.fx, u.fy+Math.sin(t*0.0005+u.bob)*9, u.fz); c.rotation.z=u.fr+u.sp*t*0.0; c.material.opacity=dimRead; }
+      else { const gx=lerp(u.fx,u.rsx,gather), gy=lerp(u.fy,u.rsy,gather), gz=lerp(u.fz,u.rsz,gather);
+        const s=clamp(slam-u.stag,0,1), e=backOut(s);
+        c.position.set(lerp(gx,u.sx,e), lerp(gy,u.sy,e), lerp(gz,u.sz,e));
+        c.rotation.z=lerp(u.fr,0,Math.max(gather,e)); c.material.opacity=1; }
+    }
+
+    // DOM
+    L_fly.style.opacity=win(p,0.0,0.04,0.13,0.18);
+    // read card: fade in, words resolve, then blow past
+    const rcIn=win(p,0.16,0.20,0.44,0.50); readcard.style.opacity=rcIn;
+    const resolve=smooth((p-0.20)/0.18); rcmsg.style.opacity=lerp(0.12,1,resolve); rcmsg.style.filter='blur('+lerp(5,0,resolve)+'px)';
+    const by=smooth((p-0.44)/0.07); readcard.querySelector('.rc').style.transform=`scale(${lerp(1,2.7,by)}) rotateX(${by*14}deg)`;
+    // sort headline
+    const so=smooth((p-0.78)/0.10); L_sort.style.opacity=so; L_sort.querySelector('.inner').style.transform=`translateY(${(1-so)*26}px)`;
+    hint.style.opacity=1-smooth(p/0.05);
+    // fade whole scene out a touch as the site approaches
+    renderer.domElement.style.opacity=1-0.35*smooth((p-0.92)/0.08);
+
+    composer.render();
+  }
+  requestAnimationFrame(tick);
+}
+</script>
+</body>
+</html>

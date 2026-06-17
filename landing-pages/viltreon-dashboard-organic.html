@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Viltreon - Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:ital,wght@0,400;0,600;1,400;1,600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-paper: #F9F8F6;
+            --text-ink: #2C2A28;
+            --accent-terracotta: #D86B5A;
+            --accent-sage: #8A9A86;
+            --accent-sand: #E5DFD3;
+        }
+        
+        body {
+            background-color: var(--bg-paper);
+            color: var(--text-ink);
+            font-family: 'Inter', sans-serif;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.04'/%3E%3C/svg%3E");
+            overflow-x: hidden;
+            display: flex;
+            height: 100vh;
+        }
+
+        .font-serif { font-family: 'Playfair Display', serif; }
+
+        .hand-drawn-border {
+            border: 2px solid var(--text-ink);
+            border-radius: 255px 15px 225px 15px/15px 225px 15px 255px;
+        }
+        .hand-drawn-border-alt {
+            border: 2px solid var(--text-ink);
+            border-radius: 15px 225px 15px 255px/255px 15px 225px 15px;
+        }
+
+        .scribble-underline { position: relative; display: inline-block; }
+        .scribble-underline::after {
+            content: '';
+            position: absolute;
+            bottom: -5px; left: 0; width: 100%; height: 8px;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 20' preserveAspectRatio='none'%3E%3Cpath d='M0,10 Q25,20 50,10 T100,10' fill='none' stroke='%238A9A86' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E");
+            background-size: 100% 100%;
+            background-repeat: no-repeat;
+            z-index: -1;
+        }
+
+        .btn-organic {
+            background-color: var(--accent-terracotta);
+            color: #fff; padding: 0.75rem 1.5rem;
+            border-radius: 8px 30px 12px 25px;
+            font-weight: 500; transition: all 0.3s ease; display: inline-block;
+            border: 1px solid transparent; cursor: pointer;
+        }
+        .btn-organic:hover {
+            transform: translateY(-2px) rotate(-1deg);
+            box-shadow: 4px 8px 15px rgba(216, 107, 90, 0.2);
+            border-radius: 25px 12px 30px 8px;
+        }
+
+        .sidebar {
+            width: 280px;
+            border-right: 2px solid var(--accent-sand);
+            display: flex;
+            flex-direction: column;
+            padding: 2rem 1.5rem;
+            background-color: var(--bg-paper);
+            z-index: 10;
+        }
+
+        .nav-item {
+            padding: 0.75rem 1rem;
+            margin-bottom: 0.5rem;
+            border-radius: 8px;
+            color: var(--text-ink);
+            text-decoration: none;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            transition: all 0.2s ease;
+        }
+
+        .nav-item.active {
+            background-color: var(--accent-sand);
+            border: 1px solid var(--text-ink);
+            border-radius: 12px 25px 8px 20px;
+        }
+
+        .nav-item:hover:not(.active) {
+            background-color: rgba(229, 223, 211, 0.5);
+            transform: translateX(4px);
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 2rem 4rem;
+            overflow-y: auto;
+        }
+
+        /* Abstract blobs for subtle dashboard depth */
+        .blob-bg {
+            position: fixed; z-index: 0; filter: blur(50px); opacity: 0.4; pointer-events: none;
+        }
+
+        .paper-card {
+            background: white;
+            padding: 1.5rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+            position: relative;
+            transition: transform 0.3s ease;
+        }
+        .paper-card:hover {
+            transform: translateY(-2px);
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--accent-sand); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #d0c8b6; }
+
+    </style>
+</head>
+<body>
+
+    <div class="blob-bg w-96 h-96 rounded-full bg-[#E5DFD3] top-[-10%] right-[-5%]"></div>
+
+    <!-- Sidebar -->
+    <aside class="sidebar relative">
+        <div class="mb-12 px-4">
+            <span class="font-serif font-bold text-2xl tracking-tight italic">Viltreon.</span>
+        </div>
+
+        <nav class="flex-1">
+            <a href="#" class="nav-item active">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg>
+                Overview
+            </a>
+            <a href="#" class="nav-item">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                Inbox Rules
+            </a>
+            <a href="#" class="nav-item">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+                Activity Log
+            </a>
+            <a href="#" class="nav-item">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                Settings
+            </a>
+        </nav>
+
+        <div class="mt-auto border-t border-[#E5DFD3] pt-6 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-full bg-[#E5DFD3] flex items-center justify-center font-serif italic font-bold">M</div>
+                <div class="text-sm">
+                    <p class="font-medium">Mike M.</p>
+                    <p class="text-xs text-[#5A5753]">Pro Plan</p>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content relative z-10">
+        
+        <!-- Header -->
+        <header class="flex justify-between items-end mb-12">
+            <div>
+                <p class="text-[#5A5753] text-sm font-medium mb-1 tracking-wide uppercase">Overview</p>
+                <h1 class="font-serif text-4xl text-[#2C2A28]">Your inbox is <span class="scribble-underline text-[#8A9A86] italic">clear.</span></h1>
+            </div>
+            
+            <!-- Live Status -->
+            <div class="flex items-center gap-3 px-4 py-2 bg-white hand-drawn-border-alt shadow-sm">
+                <div class="relative flex h-3 w-3">
+                  <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#8A9A86] opacity-75"></span>
+                  <span class="relative inline-flex rounded-full h-3 w-3 bg-[#8A9A86]"></span>
+                </div>
+                <span class="text-sm font-medium text-[#2C2A28]">Live Sorting Active</span>
+            </div>
+        </header>
+
+        <div class="grid lg:grid-cols-3 gap-8">
+            
+            <!-- Stats Column -->
+            <div class="lg:col-span-1 space-y-6">
+                <!-- Stat Card 1 -->
+                <div class="paper-card hand-drawn-border transform rotate-1">
+                    <p class="text-sm text-[#5A5753] mb-2 font-medium">Emails Sorted This Week</p>
+                    <div class="font-serif text-5xl mb-2 text-[#D86B5A]">1,204</div>
+                    <p class="text-xs text-[#5A5753]">Saved approx. 4.5 hours of manual triage.</p>
+                </div>
+                <!-- Stat Card 2 -->
+                <div class="paper-card hand-drawn-border-alt transform -rotate-1">
+                    <p class="text-sm text-[#5A5753] mb-2 font-medium">Active Rules</p>
+                    <div class="font-serif text-4xl mb-2">12</div>
+                    <a href="#" class="text-xs text-[#D86B5A] font-medium hover:underline">Manage Rules →</a>
+                </div>
+            </div>
+
+            <!-- Activity Feed -->
+            <div class="lg:col-span-2">
+                <div class="paper-card hand-drawn-border h-full flex flex-col">
+                    <div class="flex justify-between items-center mb-6 pb-4 border-b border-[#E5DFD3]">
+                        <h2 class="font-serif text-2xl italic">Recent Activity</h2>
+                        <button class="btn-organic text-sm px-4 py-1.5 shadow-none">Sort Now</button>
+                    </div>
+
+                    <div class="space-y-4 flex-1 overflow-y-auto pr-2">
+                        <!-- Activity Item -->
+                        <div class="flex items-start gap-4 p-3 hover:bg-[#F9F8F6] rounded-xl transition-colors">
+                            <div class="mt-1 w-2 h-2 rounded-full bg-[#8A9A86] shrink-0"></div>
+                            <div class="flex-1">
+                                <p class="text-sm font-medium">Invoice from Stripe</p>
+                                <p class="text-xs text-[#5A5753] mt-0.5">Categorized based on Rule 3: <em>"Any receipt or invoice..."</em></p>
+                            </div>
+                            <div class="text-right shrink-0">
+                                <span class="text-xs font-medium px-2 py-1 bg-[#E5DFD3] rounded-md text-[#5A5753]">Finance/Receipts</span>
+                                <p class="text-[10px] text-[#5A5753] mt-1">2 mins ago</p>
+                            </div>
+                        </div>
+
+                        <!-- Activity Item -->
+                        <div class="flex items-start gap-4 p-3 hover:bg-[#F9F8F6] rounded-xl transition-colors">
+                            <div class="mt-1 w-2 h-2 rounded-full bg-[#D86B5A] shrink-0"></div>
+                            <div class="flex-1">
+                                <p class="text-sm font-medium">Weekly Product Update (Substack)</p>
+                                <p class="text-xs text-[#5A5753] mt-0.5">Categorized based on Rule 1: <em>"Newsletters and digests..."</em></p>
+                            </div>
+                            <div class="text-right shrink-0">
+                                <span class="text-xs font-medium px-2 py-1 bg-[#E5DFD3] rounded-md text-[#5A5753]">Read Later</span>
+                                <p class="text-[10px] text-[#5A5753] mt-1">14 mins ago</p>
+                            </div>
+                        </div>
+
+                        <!-- Activity Item -->
+                        <div class="flex items-start gap-4 p-3 hover:bg-[#F9F8F6] rounded-xl transition-colors">
+                            <div class="mt-1 w-2 h-2 rounded-full bg-[#2C2A28] shrink-0"></div>
+                            <div class="flex-1">
+                                <p class="text-sm font-medium">Urgent: Q3 Planning Sync</p>
+                                <p class="text-xs text-[#5A5753] mt-0.5">Left in Primary Inbox based on bypass rules.</p>
+                            </div>
+                            <div class="text-right shrink-0">
+                                <span class="text-xs font-medium px-2 py-1 bg-[#E5DFD3] rounded-md text-[#5A5753]">Primary</span>
+                                <p class="text-[10px] text-[#5A5753] mt-1">1 hr ago</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <a href="#" class="block text-center text-sm text-[#5A5753] mt-4 hover:text-[#D86B5A] transition-colors">View all activity</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Add Rule -->
+        <div class="mt-8 paper-card hand-drawn-border-alt bg-white flex flex-col md:flex-row gap-6 items-center">
+            <div class="flex-1 w-full">
+                <h3 class="font-serif italic text-xl mb-2">Teach Viltreon a new rule</h3>
+                <div class="flex flex-col sm:flex-row gap-4 mt-4">
+                    <input type="text" placeholder="e.g., If it looks like a cold sales email..." class="flex-1 bg-[#F9F8F6] border border-[#E5DFD3] rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-[#D86B5A] focus:ring-1 focus:ring-[#D86B5A]">
+                    <div class="flex items-center gap-2">
+                        <span class="text-sm text-[#5A5753]">move to</span>
+                        <select class="bg-[#F9F8F6] border border-[#E5DFD3] rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-[#D86B5A]">
+                            <option>Pitch/Spam</option>
+                            <option>Read Later</option>
+                            <option>Finance</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <button class="btn-organic mt-6 md:mt-0 whitespace-nowrap">Save Rule</button>
+        </div>
+
+    </main>
+
+</body>
+</html>

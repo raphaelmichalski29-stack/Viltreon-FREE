@@ -1,0 +1,101 @@
+/*
+ * Organic Dashboard shell theme.
+ */
+
+.vlt-app {
+  position: relative;
+  isolation: isolate;
+  min-height: 100vh;
+  background-color: hsl(40 25% 96%); /* #F9F8F6 Paper */
+  color: hsl(25 5% 16%); /* #2C2A28 Ink */
+  /* Re-add the subtle noise filter here so it covers the app */
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.04'/%3E%3C/svg%3E");
+  display: flex;
+  flex-direction: column;
+}
+
+/* Ambient blobs for the organic feel */
+.vlt-app__bg {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.vlt-app__blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(50px);
+  opacity: 0.4;
+}
+
+.vlt-app__blob--a {
+  width: 384px; height: 384px; right: -5%; top: -10%;
+  background-color: #E5DFD3; /* Sand */
+}
+
+.vlt-app__blob--b {
+  width: 500px; height: 500px; left: -10%; top: 40%;
+  background-color: #F3EFE9;
+}
+
+.vlt-app__blob--c {
+  display: none;
+}
+
+.vlt-app__grid {
+  display: none; /* No stark grid for the organic theme */
+}
+
+/* Chrome polish */
+.vlt-app aside {
+  background-color: hsl(40 25% 96%);
+  border-right: 2px solid #E5DFD3;
+}
+
+.vlt-app header {
+  background-color: transparent !important;
+  border-bottom: 2px solid #E5DFD3;
+}
+
+.vlt-app header img { filter: none; } /* keep logo normal */
+
+.vlt-app aside a .bg-accent,
+.vlt-app aside a button.bg-accent {
+  background-color: #E5DFD3;
+  color: #2C2A28;
+  /* Even, small top corners keep the top edge straight; the larger bottom
+     corners keep the organic/sketch feel. */
+  border-radius: 10px 10px 8px 20px;
+  border: 1px solid #2C2A28;
+  box-shadow: none;
+}
+
+.vlt-app .bg-card {
+  background-color: #ffffff;
+  border: 2px solid #2C2A28;
+  border-radius: 255px 15px 225px 15px/15px 225px 15px 255px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+}
+
+.vlt-app main h1 {
+  font-family: 'Playfair Display', serif;
+  color: #2C2A28;
+  background: none;
+  -webkit-text-fill-color: initial;
+}
+
+.vlt-app .bg-primary {
+  background-color: #D86B5A;
+  color: white;
+  border-radius: 8px 30px 12px 25px;
+  border: 1px solid transparent;
+  box-shadow: none;
+}
+
+.vlt-app .bg-primary:hover {
+  transform: translateY(-2px) rotate(-1deg);
+  box-shadow: 4px 8px 15px rgba(216, 107, 90, 0.2);
+  border-radius: 25px 12px 30px 8px;
+}

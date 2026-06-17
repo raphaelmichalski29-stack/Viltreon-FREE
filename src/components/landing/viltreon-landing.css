@@ -1,0 +1,194 @@
+/*
+ * Viltreon landing page — "midnight azure" glass style, matching the dashboard.
+ *
+ * This file only defines the page-level palette vars (on `.vlt-land`), the base
+ * canvas, the nav, the aurora, and a few section niceties. All the glass
+ * surfaces, chips, buttons, headings and the 3D mail are reused from
+ * activity-dashboard.css (imported by the component) — those classes resolve
+ * their `--d-*` / `--glass-*` variables from the `.vlt-land` root below, so the
+ * landing and the dashboard share one visual language with no duplication.
+ *
+ * No CDNs / no new deps. Only transform/opacity/filter animate. Reduced motion
+ * is honored at the bottom.
+ */
+
+.vlt-land {
+  /* palette (mirrors .vlt-dash so the shared classes render identically) */
+  --d-bg-0: #0a1230;
+  --d-bg-1: #0f1a44;
+  --d-bg-2: #15235c;
+  --d-azure: #3b82f6;
+  --d-blue: #2563eb;
+  --d-cyan: #22d3ee;
+  --d-violet: #8b5cf6;
+  --d-mint: #34d399;
+  --d-ink: #eaf0ff;
+  --d-muted: #9fb0dd;
+  --d-faint: #6f80b0;
+  --glass: rgba(255, 255, 255, 0.055);
+  --glass-2: rgba(255, 255, 255, 0.09);
+  --glass-brd: rgba(255, 255, 255, 0.12);
+  --glass-brd-strong: rgba(255, 255, 255, 0.22);
+
+  position: relative;
+  isolation: isolate;
+  min-height: 100vh;
+  color: var(--d-ink);
+  overflow-x: hidden;
+  background:
+    radial-gradient(120% 70% at 10% -6%, #16235c 0%, transparent 52%),
+    radial-gradient(110% 80% at 100% 0%, #1a2a6b 0%, transparent 46%),
+    linear-gradient(170deg, #0f1a44 0%, #0a1230 55%, #070d24 100%);
+}
+
+.vlt-land a { color: inherit; text-decoration: none; }
+.vlt-land ::selection { background: rgba(59, 130, 246, 0.35); }
+
+/* ---- fixed aurora behind everything ---- */
+.vl-aurora {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+.vl-aurora__grid {
+  position: absolute;
+  inset: -2px;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  background-size: 50px 50px;
+  mask-image: radial-gradient(120% 65% at 50% 0%, #000 18%, transparent 72%);
+  -webkit-mask-image: radial-gradient(120% 65% at 50% 0%, #000 18%, transparent 72%);
+}
+.vl-aurora__blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(75px);
+  opacity: 0.5;
+  will-change: transform;
+}
+.vl-aurora__blob--a {
+  width: 620px; height: 620px; left: -180px; top: -200px;
+  background: radial-gradient(circle, rgba(59, 130, 246, 0.5), transparent 65%);
+  animation: va-drift 24s ease-in-out infinite;
+}
+.vl-aurora__blob--b {
+  width: 560px; height: 560px; right: -180px; top: 6%;
+  background: radial-gradient(circle, rgba(139, 92, 246, 0.42), transparent 65%);
+  animation: va-drift 30s ease-in-out infinite reverse;
+}
+.vl-aurora__blob--c {
+  width: 680px; height: 680px; left: 30%; bottom: -380px;
+  background: radial-gradient(circle, rgba(34, 211, 238, 0.26), transparent 65%);
+  animation: va-drift 34s ease-in-out infinite;
+}
+
+/* lift content above aurora */
+.vl-content { position: relative; z-index: 1; }
+
+/* ---- nav ---- */
+.vl-nav {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  background: rgba(10, 16, 40, 0.55);
+  border-bottom: 1px solid var(--glass-brd);
+}
+.vl-nav__brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 15px;
+  letter-spacing: -0.01em;
+}
+.vl-nav__brand img { filter: invert(1) brightness(1.6); }
+.vl-nav__link {
+  font-size: 14px;
+  color: var(--d-muted);
+  transition: color 0.2s ease;
+}
+.vl-nav__link:hover { color: var(--d-ink); }
+
+/* ---- generic section helpers ---- */
+.vl-eyebrow {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 12px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #8fb6ff;
+}
+.vl-display {
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.02;
+  background: linear-gradient(180deg, #ffffff 0%, #bccdff 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* feature/step icon tile (reuses the dashboard stat-icon look) */
+.vl-ic {
+  display: grid;
+  place-items: center;
+  width: 46px; height: 46px;
+  border-radius: 13px;
+  color: #cfe0ff;
+  background: linear-gradient(160deg, rgba(96, 165, 250, 0.28), rgba(139, 92, 246, 0.18));
+  border: 1px solid rgba(147, 197, 253, 0.28);
+  box-shadow: 0 8px 24px -10px rgba(59, 130, 246, 0.6);
+}
+
+/* numbered step badge */
+.vl-step-num {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 13px;
+  color: #8fb6ff;
+  border: 1px solid var(--glass-brd);
+  background: var(--glass);
+  border-radius: 999px;
+  width: 30px; height: 30px;
+  display: grid; place-items: center;
+}
+
+/* FAQ */
+.vl-faq { border-top: 1px solid var(--glass-brd); }
+.vl-faq__item { border-bottom: 1px solid var(--glass-brd); }
+.vl-faq__q {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 20px 4px;
+  text-align: left;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--d-ink);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+.vl-faq__icon { transition: transform 0.3s ease; color: #8fb6ff; }
+.vl-faq__icon[data-open="true"] { transform: rotate(45deg); }
+.vl-faq__a {
+  overflow: hidden;
+  color: var(--d-muted);
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+/* footer */
+.vl-footer {
+  border-top: 1px solid var(--glass-brd);
+  background: rgba(7, 13, 36, 0.6);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .vl-aurora__blob { animation: none !important; }
+}

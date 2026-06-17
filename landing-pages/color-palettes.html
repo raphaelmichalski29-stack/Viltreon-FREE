@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Viltreon — Gmail-style color explorations</title>
+<style>
+  :root { font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #eceff3; color: #1a1a1a; padding: 40px 24px 80px; }
+  .page { max-width: 1040px; margin: 0 auto; }
+  h1 { font-size: 30px; letter-spacing: -0.02em; margin: 0 0 6px; }
+  .lede { color: #5b6470; margin: 0 0 36px; font-size: 15px; max-width: 720px; }
+
+  .palette { background: #fff; border-radius: 20px; box-shadow: 0 10px 40px -24px rgba(0,0,0,.4); margin-bottom: 40px; overflow: hidden; border: 1px solid #e4e8ee; }
+  .palette__head { padding: 22px 26px 0; }
+  .palette__name { font-size: 20px; letter-spacing: -0.01em; margin: 0; }
+  .palette__desc { color: #5b6470; font-size: 14px; margin: 6px 0 0; }
+
+  .swatches { display: flex; flex-wrap: wrap; gap: 10px; padding: 18px 26px 22px; }
+  .swatch { width: 132px; }
+  .swatch__chip { height: 46px; border-radius: 10px; border: 1px solid rgba(0,0,0,.08); }
+  .swatch__label { font-size: 11px; color: #5b6470; margin-top: 6px; display: flex; justify-content: space-between; }
+  .swatch__label b { color: #1a1a1a; font-weight: 600; }
+
+  /* ---- mock UI (uses palette vars set per section) ---- */
+  .mock { background: var(--bg2); padding: 26px; border-top: 1px solid #eceff3; }
+  .mock__win { background: var(--bg); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; }
+  .nav { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; border-bottom: 1px solid var(--border); }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 600; color: var(--text); font-size: 15px; letter-spacing: -0.01em; }
+  .logo { width: 26px; height: 26px; border-radius: 8px; background: var(--primary); display: grid; place-items: center; color: #fff; font-size: 14px; }
+  .navlinks { display: flex; gap: 18px; align-items: center; }
+  .navlinks a { color: var(--muted); font-size: 13px; text-decoration: none; }
+  .navlinks a:hover { color: var(--text); }
+
+  .hero { padding: 40px 28px 34px; text-align: center; }
+  .hero h2 { font-size: 34px; line-height: 1.08; letter-spacing: -0.025em; margin: 0; color: var(--text); }
+  .hero h2 span { color: var(--primary); }
+  .hero p { color: var(--muted); font-size: 15px; max-width: 460px; margin: 14px auto 0; }
+  .btns { display: flex; gap: 12px; justify-content: center; margin-top: 24px; }
+  .btn { border: none; cursor: default; font-size: 14px; font-weight: 600; padding: 11px 20px; border-radius: 10px; }
+  .btn--primary { background: var(--primary); color: #fff; }
+  .btn--ghost { background: transparent; color: var(--secondary); border: 1px solid var(--border); }
+  .chips { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-top: 22px; }
+  .chip { font-size: 12px; color: var(--secondary); background: var(--chip); border: 1px solid var(--border); padding: 6px 12px; border-radius: 999px; }
+
+  .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; padding: 6px 28px 34px; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 18px; }
+  .card__dot { width: 34px; height: 34px; border-radius: 9px; display: grid; place-items: center; color: #fff; font-size: 15px; }
+  .card h3 { font-size: 15px; margin: 12px 0 6px; color: var(--text); letter-spacing: -0.01em; }
+  .card p { font-size: 13px; color: var(--muted); margin: 0; line-height: 1.5; }
+
+  @media (max-width: 720px) { .cards { grid-template-columns: 1fr; } .swatch { width: 104px; } }
+</style>
+</head>
+<body>
+<div class="page">
+  <h1>Viltreon — Gmail-style color explorations</h1>
+  <p class="lede">Four palettes in the red / white / blue family, each applied to a mock of the real UI (nav, hero, buttons, chips, cards). Tell me the letter you like (or mix-and-match), and I'll apply it to the actual app.</p>
+
+  <!-- ============ A — Gmail Classic ============ -->
+  <section class="palette" style="--bg:#ffffff; --bg2:#f6f8fc; --surface:#ffffff; --border:#e3e8ef; --text:#202124; --muted:#5f6368; --primary:#ea4335; --secondary:#1a73e8; --success:#34a853; --chip:#fdeceb;">
+    <div class="palette__head">
+      <h2 class="palette__name">A — Gmail Classic</h2>
+      <p class="palette__desc">The instantly-recognizable Gmail look: white, Gmail red as the accent, Google blue for links. Clean and trustworthy.</p>
+    </div>
+    <div class="swatches">
+      <div class="swatch"><div class="swatch__chip" style="background:#ffffff"></div><div class="swatch__label"><b>White</b><span>#FFFFFF</span></div></div>
+      <div class="swatch"><div class="swatch__chip" style="background:#f6f8fc"></div><div class="swatch__label"><b>Soft</b><span>#F6F8FC</span></div></div>
+      <div class="swatch"><div class="swatch__chip" style="background:#ea4335"></div><div class="swatch__label"><b>Red</b><span>#EA4335</span></div></div>
+      <div class="swatch"><div class="swatch__chip" style="background:#1a73e8"></div><div class="swatch__label"><b>Blue</b><span>#1A73E8</span></div></div>
+      <div class="swatch"><div class="swatch__chip" style="background:#202124"></div><div class="swatch__label"><b>Ink</b><span>#202124</span></div></div>
+      <div class="swatch"><div class="swatch__chip" style="background:#34a853"></div><div class="swatch__label"><b>Green</b><span>#34A853</span></div></div>
+    </div>
+    <div class="mock">
+      <div class="mock__win">
+        <div class="nav">
+          <div class="brand"><span class="logo">&#9993;</span> viltreon_</div>
+          <div class="navlinks"><a>Benefits</a><a>Features</a><a>Pricing</a><a class="btn btn--primary" style="padding:8px 16px;font-size:13px">Get started</a></div>
+        </div>
+        <div class="hero">
+          <h2>Stop sorting email.<br><span>It sorts itself.</span></h2>
+          <p>A clean, organized inbox and hours back every week. Set it up once and forget it.</p>
+          <div class="btns"><span class="btn btn--primary">Start free</span><span class="btn btn--ghost">See pricing</span></div>
+          <div class="chips"><span class="chip">Hours back every week</span><span class="chip">Sorts itself</span><span class="chip">Private by default</span></div>
+        </div>
+        <div class="cards">
+          <div class="card"><div class="card__dot" style="background:#ea4335">&#9889;</div><h3>Sorted instantly</h3><p>New mail is filed the second it arrives.</p></div>
+          <div class="card"><div class="card__dot" style="background:#1a73e8">&#128193;</div><h3>Your labels</h3><p>Keep the labels you already have.</p></div>
+          <div class="card"><div class="card__dot" style="background:#34a853">&#128274;</div><h3>Private by default</h3><p>We sort it, we don't keep it.</p></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ B — Red / White / Navy ============ -->
+  <section class="palette" style="--bg:#ffffff; --bg2:#f3f6fc; --surface:#ffffff; --border:#dfe6f2; --text:#102a43; --muted:#5b6b85; --primary:#d7263d; --secondary:#1452cc; --success:#2e9e5b; --chip:#eef3fe;">
+    <div class="palette__head">
+      <h2 class="palette__name">B — Red / White / Navy</h2>
+      <p class="palette__desc">Crisper and bolder. A confident red against deep navy-blue on white. Reads premium and decisive.</p>
+    </div>
+    <div class="swatches">
+      <div class="swatch"><div class="swatch__chip" style="background:#ffffff"></div><div class="swatch__label"><b>White</b><span>#FFFFFF</span></div></div>
+      <div class="swatch"><div class="swatch__chip" style="background:#f3f6fc"></div><div class="swatch__label"><b>Mist</b><span>#F3F6FC</span></div></div>
+      <div class="swatch"><div class="swatch__chip" style="background:#d7263d"></div><div class="swatch__label"><b>Red</b><span>#D7263D</span></div></div>
+      <div class="swatch"><div class="swatch__chip" style="background:#1452cc"></div><div class="swatch__label"><b>Blue</b><span>#1452CC</span></div></div>
+      <div class="swatch"><div class="swatch__chip" style="background:#102a43"></div><div class="swatch__label"><b>Navy ink</b><span>#102A43</span></div></div>
+      <div class="swatch"><div class="swatch__chip" style="background:#2e9e5b"></div><div class="swatch__label"><b>Green</b><span>#2E9E5B</span></div></div>
+    </div>
+    <div class="mock">
+      <div class="mock__win">
+        <div class="nav">
+          <div class="brand"><span class="logo">&#9993;</span> viltreon_</div>
+          <div class="navlinks"><a>Benefits</a><a>Features</a><a>Pricing</a><a class="btn btn--primary" style="padding:8px 16px;font-size:13px">Get started</a></div>
+        </div>
+        <div class="hero">
+          <h2>Stop sorting email.<br><span>It sorts itself.</span></h2>
+          <p>A clean, organized inbox and hours back every week. Set it up once and forget it.</p>
+          <div class="btns"><span class="btn btn--primary">Start free</span><span class="btn btn--ghost">See pricing</span></div>
+          <div class="chips"><span class="chip">Hours back every week</span><span class="chip">Sorts itself</span><span class="chip">Private by default</span></div>
+        </div>
+        <div class="cards">
+          <div class="card"><div class="card__dot" style="background:#d7263d">&#9889;</div><h3>Sorted instantly</h3><p>New mail is filed the second it arrives.</p></div>
+          <div class="card"><div class="card__dot" style="background:#1452cc">&#128193;</div><h3>Your labels</h3><p>Keep the labels you already have.</p></div>
+          <div class="card"><div class="card__dot" style="background:#2e9e5b">&#128274;</div><h3>Private by default</h3><p>We sort it, we don't keep it.</p></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ C — Google Multicolor ============ -->
+  <section class="palette" style="--bg:#ffffff; --bg2:#f8f9fb; --surface:#ffffff; --border:#e6e8eb; --text:#202124; --muted:#5f6368; --primary:#ea4335; --secondary:#4285f4; --success:#34a853; --chip:#f1f3f4;">
+    <div class="palette__head">
+      <h2 class="palette__name">C — Google Multicolor</h2>
+      <p class="palette__desc">All four Google colors as accents: red CTA, blue links, green and yellow on the cards. Playful and unmistakably Google-adjacent.</p>
+    </div>
+    <div class="swatches">
+      <div class="swatch"><div class="swatch__chip" style="background:#ffffff"></div><div class="swatch__label"><b>White</b><span>#FFFFFF</span></div></div>
+      <div class="swatch"><div class="swatch__chip" style="background:#ea4335"></div><div class="swatch__label"><b>Red</b><span>#EA4335</span></div></div>
+      <div class="swatch"><div class="swatch__chip" style="background:#4285f4"></div><div class="swatch__label"><b>Blue</b><span>#4285F4</span></div></div>
+      <div class="swatch"><div class="swatch__chip" style="background:#34a853"></div><div class="swatch__label"><b>Green</b><span>#34A853</span></div></div>
+      <div class="swatch"><div class="swatch__chip" style="background:#fbbc05"></div><div class="swatch__label"><b>Yellow</b><span>#FBBC05</span></div></div>
+      <div class="swatch"><div class="swatch__chip" style="background:#202124"></div><div class="swatch__label"><b>Ink</b><span>#202124</span></div></div>
+    </div>
+    <div class="mock">
+      <div class="mock__win">
+        <div class="nav">
+          <div class="brand"><span class="logo">&#9993;</span> viltreon_</div>
+          <div class="navlinks"><a>Benefits</a><a>Features</a><a>Pricing</a><a class="btn btn--primary" style="padding:8px 16px;font-size:13px">Get started</a></div>
+        </div>
+        <div class="hero">
+          <h2>Stop sorting email.<br><span>It sorts itself.</span></h2>
+          <p>A clean, organized inbox and hours back every week. Set it up once and forget it.</p>
+          <div class="btns"><span class="btn btn--primary">Start free</span><span class="btn btn--ghost">See pricing</span></div>
+          <div class="chips"><span class="chip">Hours back every week</span><span class="chip">Sorts itself</span><span class="chip">Private by default</span></div>
+        </div>
+        <div class="cards">
+          <div class="card"><div class="card__dot" style="background:#ea4335">&#9889;</div><h3>Sorted instantly</h3><p>New mail is filed the second it arrives.</p></div>
+          <div class="card"><div class="card__dot" style="background:#4285f4">&#128193;</div><h3>Your labels</h3><p>Keep the labels you already have.</p></div>
+          <div class="card"><div class="card__dot" style="background:#fbbc05">&#9728;</div><h3>Always tidy</h3><p>Clutter filed out of the way.</p></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ D — Blue-led Trust ============ -->
+  <section class="palette" style="--bg:#ffffff; --bg2:#eef4ff; --surface:#ffffff; --border:#d6e2fb; --text:#0b1f44; --muted:#51618a; --primary:#1a73e8; --secondary:#ea4335; --success:#34a853; --chip:#fdeceb;">
+    <div class="palette__head">
+      <h2 class="palette__name">D — Blue-led Trust (red mail accent)</h2>
+      <p class="palette__desc">Blue leads (trust), red is the pop for the "mail" moments and key actions. A softer blue-tinted backdrop.</p>
+    </div>
+    <div class="swatches">
+      <div class="swatch"><div class="swatch__chip" style="background:#ffffff"></div><div class="swatch__label"><b>White</b><span>#FFFFFF</span></div></div>
+      <div class="swatch"><div class="swatch__chip" style="background:#eef4ff"></div><div class="swatch__label"><b>Sky</b><span>#EEF4FF</span></div></div>
+      <div class="swatch"><div class="swatch__chip" style="background:#1a73e8"></div><div class="swatch__label"><b>Blue</b><span>#1A73E8</span></div></div>
+      <div class="swatch"><div class="swatch__chip" style="background:#ea4335"></div><div class="swatch__label"><b>Red</b><span>#EA4335</span></div></div>
+      <div class="swatch"><div class="swatch__chip" style="background:#0b1f44"></div><div class="swatch__label"><b>Navy ink</b><span>#0B1F44</span></div></div>
+      <div class="swatch"><div class="swatch__chip" style="background:#34a853"></div><div class="swatch__label"><b>Green</b><span>#34A853</span></div></div>
+    </div>
+    <div class="mock">
+      <div class="mock__win">
+        <div class="nav">
+          <div class="brand"><span class="logo">&#9993;</span> viltreon_</div>
+          <div class="navlinks"><a>Benefits</a><a>Features</a><a>Pricing</a><a class="btn btn--primary" style="padding:8px 16px;font-size:13px">Get started</a></div>
+        </div>
+        <div class="hero">
+          <h2>Stop sorting email.<br><span>It sorts itself.</span></h2>
+          <p>A clean, organized inbox and hours back every week. Set it up once and forget it.</p>
+          <div class="btns"><span class="btn btn--primary">Start free</span><span class="btn btn--ghost">See pricing</span></div>
+          <div class="chips"><span class="chip">Hours back every week</span><span class="chip">Sorts itself</span><span class="chip">Private by default</span></div>
+        </div>
+        <div class="cards">
+          <div class="card"><div class="card__dot" style="background:#ea4335">&#9993;</div><h3>Sorted instantly</h3><p>New mail is filed the second it arrives.</p></div>
+          <div class="card"><div class="card__dot" style="background:#1a73e8">&#128193;</div><h3>Your labels</h3><p>Keep the labels you already have.</p></div>
+          <div class="card"><div class="card__dot" style="background:#34a853">&#128274;</div><h3>Private by default</h3><p>We sort it, we don't keep it.</p></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</div>
+</body>
+</html>

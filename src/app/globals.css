@@ -1,0 +1,95 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  /*
+   * Editorial Human/Organic Theme
+   */
+  :root {
+    --background: 40 25% 96%; /* #F9F8F6 Paper */
+    --foreground: 25 5% 16%; /* #2C2A28 Ink */
+    --card: 0 0% 100%; /* #FFFFFF */
+    --card-foreground: 25 5% 16%; 
+    --popover: 40 25% 96%;
+    --popover-foreground: 25 5% 16%;
+    --primary: 10 65% 60%; /* #D86B5A Terracotta */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 40 25% 96%;
+    --secondary-foreground: 25 5% 16%;
+    --muted: 42 28% 86%; /* #E5DFD3 Sand */
+    --muted-foreground: 30 4% 34%; /* #5A5753 */
+    --accent: 42 28% 78%; /* Darker beige (a deeper shade of the Sand token) */
+    --accent-foreground: 25 5% 16%; /* #2C2A28 Ink — readable on the light beige */
+    --destructive: 0 72% 58%;
+    --destructive-foreground: 0 0% 100%;
+    --success: 152 60% 45%;
+    --success-foreground: 0 0% 100%;
+    --border: 42 28% 86%; /* #E5DFD3 */
+    --input: 42 28% 86%;
+    --ring: 10 65% 60%;
+    --radius: 0.5rem;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+@layer utilities {
+  .bg-grid {
+    background-image: linear-gradient(rgba(255,255,255,.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,.03) 1px, transparent 1px);
+    background-size: 48px 48px;
+  }
+  .radial-fade {
+    background: radial-gradient(ellipse at center, transparent 30%, hsl(var(--background)) 70%);
+  }
+}
+
+@layer utilities {
+  .pulse-dot {
+    animation: pulse-dot 2s ease-in-out infinite;
+  }
+  @keyframes pulse-dot {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  .drift {
+    animation: drift 8s ease-in-out infinite;
+  }
+  @keyframes drift {
+    0%, 100% { transform: translate(-50%, -33.33%) scale(1); }
+    33% { transform: translate(-45%, -30%) scale(1.05); }
+    66% { transform: translate(-55%, -36%) scale(0.95); }
+  }
+
+  .fade-up {
+    opacity: 0;
+    animation: fade-up 0.6s ease-out forwards;
+  }
+  @keyframes fade-up {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .marquee-track {
+    animation: marquee 32s linear infinite;
+  }
+  .marquee-track:hover {
+    animation-play-state: paused;
+  }
+  @keyframes marquee {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .marquee-track { animation: none; }
+  }
+}

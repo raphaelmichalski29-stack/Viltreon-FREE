@@ -1,0 +1,478 @@
+/*
+ * Reimagined dashboard ("Activity") visual layer.
+ *
+ * Everything is scoped under `.vlt-dash` so it cannot leak into the rest of the
+ * app (sidebar, top bar, settings/labels pages all keep the shared shadcn
+ * theme). The palette here is self-contained and intentionally NOT tied to the
+ * light/dark theme tokens: a deep "midnight azure" indigo that reads as
+ * premium/trustworthy in either system theme — distinctly not the old black
+ * "hacker" look.
+ *
+ * No external fonts or CDNs (the per-request CSP forbids them). Only
+ * GPU-friendly properties are animated (transform / opacity / filter).
+ */
+
+.vlt-dash {
+  /* ---- palette ---------------------------------------------------------- */
+  --d-bg-0: #0a1230;          /* deepest navy-indigo */
+  --d-bg-1: #0f1a44;
+  --d-bg-2: #15235c;
+  --d-azure: #3b82f6;
+  --d-blue: #2563eb;
+  --d-cyan: #22d3ee;
+  --d-violet: #8b5cf6;
+  --d-mint: #34d399;
+  --d-ink: #eaf0ff;           /* primary text on indigo */
+  --d-muted: #9fb0dd;         /* secondary text */
+  --d-faint: #6f80b0;
+  --glass: rgba(255, 255, 255, 0.055);
+  --glass-2: rgba(255, 255, 255, 0.09);
+  --glass-brd: rgba(255, 255, 255, 0.12);
+  --glass-brd-strong: rgba(255, 255, 255, 0.22);
+
+  position: relative;
+  isolation: isolate;
+  color: var(--d-ink);
+  border-radius: 24px;
+  overflow: hidden;
+  background:
+    radial-gradient(120% 90% at 12% -10%, var(--d-bg-2) 0%, transparent 55%),
+    radial-gradient(120% 110% at 100% 0%, #1a2a6b 0%, transparent 50%),
+    linear-gradient(160deg, var(--d-bg-1) 0%, var(--d-bg-0) 60%, #070d24 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 30px 80px -40px rgba(0, 0, 0, 0.7);
+}
+
+/* ---- ambient background layers ----------------------------------------- */
+.vlt-dash__bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.vlt-dash__grid {
+  position: absolute;
+  inset: -2px;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+  background-size: 46px 46px;
+  mask-image: radial-gradient(120% 80% at 50% 0%, #000 25%, transparent 75%);
+  -webkit-mask-image: radial-gradient(120% 80% at 50% 0%, #000 25%, transparent 75%);
+}
+
+.vlt-dash__blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(60px);
+  opacity: 0.55;
+  will-change: transform;
+}
+.vlt-dash__blob--a {
+  width: 520px; height: 520px;
+  left: -120px; top: -160px;
+  background: radial-gradient(circle, rgba(59, 130, 246, 0.55), transparent 65%);
+  animation: vd-drift 22s ease-in-out infinite;
+}
+.vlt-dash__blob--b {
+  width: 460px; height: 460px;
+  right: -120px; top: -80px;
+  background: radial-gradient(circle, rgba(139, 92, 246, 0.5), transparent 65%);
+  animation: vd-drift 26s ease-in-out infinite reverse;
+}
+.vlt-dash__blob--c {
+  width: 600px; height: 600px;
+  right: 8%; bottom: -300px;
+  background: radial-gradient(circle, rgba(34, 211, 238, 0.32), transparent 65%);
+  animation: vd-drift 30s ease-in-out infinite;
+}
+
+.vlt-dash__content {
+  position: relative;
+  z-index: 1;
+}
+
+/* text + small helpers */
+.vlt-muted { color: var(--d-muted); }
+.vlt-faint { color: var(--d-faint); }
+.vlt-heading {
+  background: linear-gradient(180deg, #ffffff, #c3d2ff);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  letter-spacing: -0.02em;
+}
+.vlt-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 10px;
+  font-size: 12px;
+  color: var(--d-muted);
+  background: var(--glass);
+  border: 1px solid var(--glass-brd);
+}
+.vlt-chip svg { color: #8fb6ff; }
+
+/* ---- glass surfaces ----------------------------------------------------- */
+.vlt-card {
+  position: relative;
+  border-radius: 18px;
+  background: linear-gradient(180deg, var(--glass-2), var(--glass));
+  border: 1px solid var(--glass-brd);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 18px 50px -30px rgba(0, 0, 0, 0.8);
+  overflow: hidden;
+}
+/* faint top-edge light sweep */
+.vlt-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(120deg, transparent 20%, rgba(255, 255, 255, 0.28), transparent 55%);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+/* animated gradient border on hover (magic-ui "shine-border" idea) */
+.vlt-stat {
+  transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.4s ease;
+  transform-style: preserve-3d;
+}
+.vlt-stat:hover {
+  transform: translateY(-4px);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    0 26px 60px -28px rgba(37, 99, 235, 0.55);
+}
+/* cursor-follow spotlight (magic-card pattern); --mx/--my set from JS */
+.vlt-stat__spot {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  background: radial-gradient(220px circle at var(--mx, 50%) var(--my, 0%), rgba(96, 165, 250, 0.25), transparent 60%);
+  pointer-events: none;
+}
+.vlt-stat:hover .vlt-stat__spot { opacity: 1; }
+
+.vlt-stat__icon {
+  display: grid;
+  place-items: center;
+  width: 42px; height: 42px;
+  border-radius: 12px;
+  color: #cfe0ff;
+  background: linear-gradient(160deg, rgba(96, 165, 250, 0.28), rgba(139, 92, 246, 0.18));
+  border: 1px solid rgba(147, 197, 253, 0.28);
+  box-shadow: 0 8px 24px -10px rgba(59, 130, 246, 0.6);
+}
+.vlt-stat__value {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+  background: linear-gradient(180deg, #ffffff, #b9ccff);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* ---- shimmer / shiny button -------------------------------------------- */
+.vlt-btn {
+  position: relative;
+  overflow: hidden;
+  border-radius: 12px;
+  color: #fff;
+  background: linear-gradient(120deg, var(--d-blue), var(--d-azure) 45%, var(--d-violet));
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow:
+    0 10px 30px -12px rgba(59, 130, 246, 0.8),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  transition: transform 0.2s ease, box-shadow 0.3s ease, filter 0.2s ease;
+}
+.vlt-btn:hover { transform: translateY(-1px); filter: brightness(1.07); }
+.vlt-btn:active { transform: translateY(0); }
+.vlt-btn:disabled { opacity: 0.7; cursor: not-allowed; }
+.vlt-btn::after {
+  content: "";
+  position: absolute;
+  top: 0; left: -150%;
+  width: 75%; height: 100%;
+  background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.45), transparent);
+  transform: skewX(-18deg);
+  animation: vd-sheen 3.6s ease-in-out infinite;
+}
+
+/* ---- status pill -------------------------------------------------------- */
+.vlt-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  border: 1px solid var(--glass-brd);
+  background: var(--glass);
+  color: var(--d-muted);
+}
+.vlt-pill__dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--d-mint);
+  box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.6);
+  animation: vd-ping 2.2s ease-out infinite;
+}
+.vlt-pill__dot--idle { background: var(--d-faint); animation: none; }
+
+/* ====================================================================== */
+/*  3D SPINNING MAIL                                                       */
+/* ====================================================================== */
+.mail3d {
+  position: relative;
+  width: 100%;
+  min-height: 320px;
+  display: grid;
+  place-items: center;
+  perspective: 1100px;
+  perspective-origin: 50% 45%;
+}
+
+.mail3d__glow {
+  position: absolute;
+  width: 360px; height: 360px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(59, 130, 246, 0.45), rgba(139, 92, 246, 0.18) 45%, transparent 70%);
+  filter: blur(20px);
+  animation: vd-pulse 5s ease-in-out infinite;
+}
+
+/* slowly spinning orbital ring behind the envelope */
+.mail3d__orbit {
+  position: absolute;
+  width: 300px; height: 300px;
+  border-radius: 50%;
+  border: 1px dashed rgba(147, 197, 253, 0.35);
+  transform: rotateX(72deg);
+  animation: vd-spin-y 18s linear infinite;
+}
+.mail3d__orbit::after {
+  content: "";
+  position: absolute;
+  top: -5px; left: 50%;
+  width: 10px; height: 10px; margin-left: -5px;
+  border-radius: 50%;
+  background: var(--d-cyan);
+  box-shadow: 0 0 14px 3px rgba(34, 211, 238, 0.9);
+}
+
+.mail3d__scene {
+  position: relative;
+  transform-style: preserve-3d;
+  animation: vd-float 7s ease-in-out infinite;
+}
+.mail3d__cube {
+  --mw: clamp(200px, 22vw, 264px);
+  --mh: clamp(132px, 14.5vw, 174px);
+  --md: 26px;
+  position: relative;
+  width: var(--mw);
+  height: var(--mh);
+  transform-style: preserve-3d;
+  animation: vd-spin-cube 16s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+}
+
+.mail3d__face {
+  position: absolute;
+  border-radius: 10px;
+  backface-visibility: hidden;
+}
+/* front + back are the big envelope faces */
+.mail3d__face--front,
+.mail3d__face--back {
+  width: var(--mw);
+  height: var(--mh);
+  background: linear-gradient(155deg, #f7faff 0%, #dbe6ff 60%, #c7d6f7 100%);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.7);
+  overflow: hidden;
+}
+.mail3d__face--front { transform: translateZ(calc(var(--md) / 2)); }
+.mail3d__face--back { transform: rotateY(180deg) translateZ(calc(var(--md) / 2)); }
+
+/* thin paper-edge sides give it real volume through the spin */
+.mail3d__face--right,
+.mail3d__face--left {
+  width: var(--md);
+  height: var(--mh);
+  left: calc(var(--mw) / 2 - var(--md) / 2);
+  background: linear-gradient(90deg, #b7c6ec, #e7eeff);
+}
+.mail3d__face--right { transform: rotateY(90deg) translateZ(calc(var(--mw) / 2)); }
+.mail3d__face--left { transform: rotateY(-90deg) translateZ(calc(var(--mw) / 2)); }
+.mail3d__face--top,
+.mail3d__face--bottom {
+  width: var(--mw);
+  height: var(--md);
+  top: calc(var(--mh) / 2 - var(--md) / 2);
+  background: linear-gradient(180deg, #e7eeff, #b7c6ec);
+}
+.mail3d__face--top { transform: rotateX(90deg) translateZ(calc(var(--mh) / 2)); }
+.mail3d__face--bottom { transform: rotateX(-90deg) translateZ(calc(var(--mh) / 2)); }
+
+/* envelope front detailing */
+.env-flap {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 64%;
+  background: linear-gradient(160deg, #eaf1ff, #cbd9f7);
+  clip-path: polygon(0 0, 100% 0, 50% 100%);
+  box-shadow: inset 0 -1px 2px rgba(80, 110, 170, 0.25);
+}
+.env-pocket-left,
+.env-pocket-right {
+  position: absolute;
+  bottom: 0;
+  width: 52%;
+  height: 70%;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.35), rgba(199, 214, 247, 0.5));
+}
+.env-pocket-left { left: 0; clip-path: polygon(0 100%, 0 12%, 100% 100%); }
+.env-pocket-right { right: 0; clip-path: polygon(100% 100%, 100% 12%, 0 100%); }
+
+.env-seal {
+  position: absolute;
+  left: 50%; top: 54%;
+  width: 46px; height: 46px;
+  margin: -23px 0 0 -23px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: radial-gradient(circle at 35% 30%, #5b8cff, #2742b8);
+  box-shadow: 0 6px 16px -4px rgba(20, 40, 120, 0.8), inset 0 1px 2px rgba(255, 255, 255, 0.5);
+  z-index: 3;
+}
+.env-seal img { width: 26px; height: 26px; filter: brightness(0) invert(1); opacity: 0.95; }
+
+/* the letter that rises out of the envelope on a loop */
+.mail3d__letter {
+  position: absolute;
+  left: 12%;
+  top: 8%;
+  width: 76%;
+  height: 86%;
+  border-radius: 8px;
+  background: linear-gradient(180deg, #ffffff, #eef3ff);
+  box-shadow: 0 10px 26px -10px rgba(15, 30, 80, 0.6);
+  transform: translateZ(2px) translateY(8%);
+  animation: vd-letter 16s ease-in-out infinite;
+  padding: 14px 14px 0;
+  backface-visibility: hidden;
+  z-index: 1;
+}
+.mail3d__letter span {
+  display: block;
+  height: 6px;
+  border-radius: 3px;
+  margin-bottom: 9px;
+  background: linear-gradient(90deg, #c5d4f2, #e6ecfb);
+}
+.mail3d__letter span:nth-child(1) { width: 55%; background: linear-gradient(90deg, var(--d-blue), var(--d-violet)); height: 8px; }
+.mail3d__letter span:nth-child(2) { width: 92%; }
+.mail3d__letter span:nth-child(3) { width: 80%; }
+.mail3d__letter span:nth-child(4) { width: 88%; }
+.mail3d__letter__check {
+  position: absolute;
+  right: 12px; bottom: 12px;
+  width: 24px; height: 24px;
+  border-radius: 50%;
+  display: grid; place-items: center;
+  color: #fff;
+  background: linear-gradient(160deg, var(--d-mint), #10b981);
+  box-shadow: 0 6px 16px -6px rgba(16, 185, 129, 0.8);
+}
+
+/* particles being "sorted" toward the envelope */
+.mail3d__particles { position: absolute; inset: 0; pointer-events: none; }
+.mail3d__particle {
+  position: absolute;
+  width: 7px; height: 7px;
+  border-radius: 2px;
+  background: linear-gradient(160deg, var(--d-cyan), var(--d-azure));
+  box-shadow: 0 0 10px 1px rgba(59, 130, 246, 0.7);
+  opacity: 0;
+  animation: vd-sort 4.8s ease-in infinite;
+}
+
+/* ---- keyframes ---------------------------------------------------------- */
+@keyframes vd-spin-cube {
+  0%   { transform: rotateX(-12deg) rotateY(0deg); }
+  100% { transform: rotateX(-12deg) rotateY(360deg); }
+}
+@keyframes vd-spin-y {
+  from { transform: rotateX(72deg) rotateZ(0deg); }
+  to   { transform: rotateX(72deg) rotateZ(360deg); }
+}
+@keyframes vd-float {
+  0%, 100% { transform: translateY(-10px); }
+  50%      { transform: translateY(10px); }
+}
+@keyframes vd-letter {
+  0%, 18%   { transform: translateZ(2px) translateY(14%); opacity: 0.92; }
+  40%, 60%  { transform: translateZ(20px) translateY(-34%); opacity: 1; }
+  82%, 100% { transform: translateZ(2px) translateY(14%); opacity: 0.92; }
+}
+@keyframes vd-pulse {
+  0%, 100% { transform: scale(0.92); opacity: 0.7; }
+  50%      { transform: scale(1.08); opacity: 1; }
+}
+@keyframes vd-drift {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33%      { transform: translate(40px, 30px) scale(1.08); }
+  66%      { transform: translate(-30px, 20px) scale(0.95); }
+}
+@keyframes vd-sheen {
+  0%   { left: -150%; }
+  55%  { left: 150%; }
+  100% { left: 150%; }
+}
+@keyframes vd-ping {
+  0%   { box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.55); }
+  70%  { box-shadow: 0 0 0 7px rgba(52, 211, 153, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(52, 211, 153, 0); }
+}
+@keyframes vd-sort {
+  0%   { opacity: 0; transform: translate(var(--px, -120px), var(--py, -40px)) scale(0.6); }
+  25%  { opacity: 1; }
+  100% { opacity: 0; transform: translate(0, 0) scale(0.2); }
+}
+
+/* ---- responsive --------------------------------------------------------- */
+@media (max-width: 640px) {
+  .vlt-dash { border-radius: 18px; }
+  .mail3d { min-height: 260px; }
+  .mail3d__glow { width: 240px; height: 240px; }
+  .mail3d__orbit { width: 220px; height: 220px; }
+}
+
+/* ---- accessibility: respect reduced motion ------------------------------ */
+@media (prefers-reduced-motion: reduce) {
+  .vlt-dash *,
+  .vlt-dash *::before,
+  .vlt-dash *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+  /* keep the envelope readable as a static 3/4 view */
+  .mail3d__cube { transform: rotateX(-14deg) rotateY(-26deg) !important; }
+  .mail3d__letter { transform: translateZ(2px) translateY(8%) !important; opacity: 1 !important; }
+  .mail3d__particle { opacity: 0 !important; }
+}

@@ -1,0 +1,61 @@
+name: CI
+
+# Typecheck + production build on every push and PR. This is the automated
+# gate the audit flagged as missing: it catches the regressions that would
+# otherwise only surface during a manual `setup-vps.sh` deploy.
+#
+# Lint is intentionally omitted: the repo has no ESLint config, so `next lint`
+# would try to bootstrap one interactively. The real quality gates here are the
+# TypeScript typecheck (also run by the pre-commit hook) and the Next build.
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+# Cancel superseded runs on the same ref so a rapid series of pushes doesn't
+# queue redundant builds.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Typecheck & build
+    runs-on: ubuntu-latest
+
+    # Dummy values so the env guards in next.config.js and the encryption
+    # module load at build time. LOCAL_PROD_TEST=1 skips the production-only
+    # strength/HTTPS/Redis checks (this is a build, not a real deploy). No real
+    # secrets are needed: every page is force-dynamic, so the build never
+    # connects to Postgres, Stripe, or Google.
+    env:
+      LOCAL_PROD_TEST: "1"
+      NEXTAUTH_URL: http://localhost:3000
+      NEXTAUTH_SECRET: ci_dummy_nextauth_secret_0123456789abcdef
+      GOOGLE_CLIENT_ID: ci-dummy
+      GOOGLE_CLIENT_SECRET: ci-dummy
+      DATABASE_URL: postgresql://ci:ci@localhost:5432/ci
+      ENCRYPTION_KEY: ci_dummy_encryption_key_0123456789abcdef
+      ENCRYPTION_SALT: ci_dummy_salt_0123456789
+      STRIPE_SECRET_KEY: sk_test_ci_dummy
+      STRIPE_WEBHOOK_SECRET: whsec_ci_dummy
+      STRIPE_MONTHLY_PRICE_ID: price_ci_dummy
+      STRIPE_ANNUAL_PRICE_ID: price_ci_dummy
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22" # matches the VPS (NodeSource 22 LTS in setup-vps.sh)
+          cache: npm
+
+      # `npm ci` runs the postinstall `prisma generate`, but run it explicitly
+      # too so a future change to the install flow can't silently drop the
+      # generated client the typecheck depends on.
+      - run: npm ci
+      - run: npx prisma generate
+
+      - run: npm run typecheck
+      - run: npm run build

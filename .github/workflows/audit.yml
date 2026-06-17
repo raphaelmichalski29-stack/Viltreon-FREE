@@ -1,0 +1,26 @@
+name: Dependency audit
+
+# Weekly npm audit (CASA gap-analysis item 6: dependency-scan cadence).
+# Fails on moderate+ so new advisories surface as a red run + email from
+# GitHub instead of silently accumulating. Also runnable on demand.
+
+on:
+  schedule:
+    - cron: "0 12 * * 1" # Mondays 12:00 UTC
+  workflow_dispatch:
+
+jobs:
+  audit:
+    name: npm audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      # No install needed: npm audit reads package-lock.json and queries the
+      # advisory database directly.
+      - run: npm audit --audit-level=moderate
