@@ -4,8 +4,8 @@
  *   npm run setup   (or)   npm run viltreon
  *
  * Fully local: SQLite database (a single file) + in-memory queue (no Redis).
- * No Docker, no cloud. Generates secrets, walks you through Google sign-in,
- * writes .env, creates the database, and starts the app.
+ * No Docker, no cloud. Installs dependencies, generates secrets, walks you
+ * through Google sign-in, writes .env, creates the database, and starts the app.
  * Zero external dependencies — Node built-ins only.
  */
 import { createInterface } from 'node:readline/promises'
@@ -56,6 +56,18 @@ async function main() {
   }
   if (existsSync(ENV_PATH) && !(await yes('.env already exists. Overwrite it?', false))) {
     warn('Keeping existing .env. Exiting.'); rl.close(); return
+  }
+
+  head('Installing dependencies')
+  if (existsSync(join(ROOT, 'node_modules'))) {
+    ok('OK  Dependencies already installed.')
+  } else {
+    log('Running npm install (first run — this can take a minute)...')
+    if (!run('npm', ['install'])) {
+      warn('! npm install failed. Fix the error above, then re-run: npm run setup')
+      rl.close(); return
+    }
+    ok('OK  Dependencies installed.')
   }
 
   head('Generating secrets')
@@ -142,11 +154,7 @@ NEXT_PUBLIC_BUG_REPORT_URL=
 `, { mode: 0o600 })
   ok(`OK  Wrote ${ENV_PATH}`)
 
-  head('Set up the database & app')
-  if (!existsSync(join(ROOT, 'node_modules'))) {
-    log('Installing dependencies (npm install)...')
-    run('npm', ['install'])
-  }
+  head('Create the database')
   log('Creating the database (prisma db push)...')
   if (!run('npx', ['prisma', 'db', 'push'])) {
     warn('    prisma db push failed. Check DATABASE_URL, then run:  npx prisma db push')
