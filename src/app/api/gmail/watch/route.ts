@@ -35,14 +35,37 @@ export async function POST(request: NextRequest) {
     const gmail = await getGmailClient(token.sub)
 
     if (parsed.data.action === "start") {
-      const historyId = await setupGmailPush(token.sub, gmail)
-      // Keep autoSortEnabled in sync — the webhook short-circuits when this is false,
-      // so a registered watch with autoSortEnabled=false silently does nothing.
+      // Keep autoSortEnabled in sync — the webhook short-circuits when false.
       await prisma.user.update({
         where: { id: token.sub },
         data: { autoSortEnabled: true },
       })
-      return NextResponse.json({ success: true, historyId })
+
+      // Real-time push needs a Pub/Sub topic AND a public HTTPS endpoint — neither
+      // exists on a localhost self-host. Skip it (no topic) or tolerate failure
+      // (topic missing/unreachable) instead of 500ing. Manual "Sort Now" works
+      // either way; see docs/REALTIME.md to enable live sorting.
+      if (!process.env.PUBSUB_TOPIC_NAME) {
+        return NextResponse.json({
+          success: true,
+          pushConfigured: false,
+          message: "Real-time push isn't configured — using manual sync. See docs/REALTIME.md to enable live sorting.",
+        })
+      }
+      try {
+        const historyId = await setupGmailPush(token.sub, gmail)
+        return NextResponse.json({ success: true, pushConfigured: true, historyId })
+      } catch (err) {
+        console.warn(
+          "[gmail/watch] live push unavailable (continuing with manual sync):",
+          err instanceof Error ? err.message : err,
+        )
+        return NextResponse.json({
+          success: true,
+          pushConfigured: false,
+          message: "Couldn't enable real-time push (Pub/Sub topic not found or unreachable). Manual sync still works.",
+        })
+      }
     }
 
     await stopGmailPush(token.sub, gmail)

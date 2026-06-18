@@ -68,6 +68,10 @@ if (process.env.NODE_ENV === 'production' && !isLocalProdTest) {
 const nextConfig = {
   allowedDevOrigins: ['trident-catchy-nativity.ngrok-free.dev'],
   poweredByHeader: false,
+  // Pin the workspace root to this project so Next doesn't mis-infer it from a
+  // stray package-lock.json in a parent/home directory (the "multiple lockfiles"
+  // warning self-hosters hit when they clone into their home folder).
+  turbopack: { root: __dirname },
   typescript: {
     ignoreBuildErrors: true,
   },
