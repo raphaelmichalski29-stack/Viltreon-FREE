@@ -46,10 +46,6 @@ export interface UserSettings {
   hasGeminiKey: boolean
   gmailConnected: boolean
   pushEnabled: boolean
-  subscriptionStatus?: string | null
-  subscriptionEndsAt?: string | null
-  trialDaysRemaining?: number
-  emailsProcessedThisMonth?: number
   fallbackGmailLabelId?: string | null
 }
 

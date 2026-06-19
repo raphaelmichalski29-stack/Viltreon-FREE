@@ -48,7 +48,6 @@ export async function renewGmailWatches(): Promise<{
     where: {
       autoSortEnabled: true,
       geminiKeyEnc: { not: null },
-      accessDisabled: false,
     },
     select: { id: true },
   })

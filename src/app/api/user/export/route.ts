@@ -39,9 +39,6 @@ export async function GET(request: NextRequest) {
         archiveSorted: true,
         sortScope: true,
         sortingRules: true,
-        subscriptionStatus: true,
-        subscriptionEndsAt: true,
-        emailsProcessedThisMonth: true,
         labels: {
           select: {
             gmailLabelId: true,
@@ -82,11 +79,6 @@ export async function GET(request: NextRequest) {
         archiveSorted: user.archiveSorted,
         sortScope: user.sortScope,
         sortingRules: user.sortingRules,
-      },
-      subscription: {
-        status: user.subscriptionStatus,
-        endsAt: user.subscriptionEndsAt,
-        emailsProcessedThisMonth: user.emailsProcessedThisMonth,
       },
       labels: user.labels,
       sortingHistory: user.sortingLogs,

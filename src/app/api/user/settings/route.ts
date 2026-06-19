@@ -4,7 +4,6 @@ import { prisma } from "@/lib/db"
 import { checkRateLimit, rateLimitKey } from "@/lib/rate-limit"
 import { apiError } from "@/lib/api-error"
 import { sanitizeSortingRules } from "@/lib/gemini"
-import { maybeExpireTrial } from "@/lib/subscription"
 import { getOrSet, cacheKey, invalidate } from "@/lib/cache"
 import type { UserSettings } from "@/types"
 import { z } from "zod"
@@ -30,18 +29,11 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    // Fire the trial-expiry writeback if applicable, BEFORE the cache. If a
-    // trial is expiring this second, we WANT the cache to capture the
-    // post-writeback state — not the pre-writeback one. Doing this outside
-    // getOrSet means it always runs.
-    await maybeExpireTrial(token.sub)
-
     const payload = await getOrSet(
       cacheKey("settings", token.sub),
       async () => {
-        // Explicit projection so sensitive fields (geminiKeyEnc, stripeCustomerId,
-        // stripeSubscriptionId) never enter the route handler in the first place.
-        // Defense-in-depth against a future refactor that returns `user` verbatim.
+        // Explicit projection so the encrypted Groq key never leaves the DB
+        // layer (we only return whether one is set).
         const user = await prisma.user.findUnique({
           where: { id: token.sub },
           select: {
@@ -52,9 +44,6 @@ export async function GET(request: NextRequest) {
             sortingRules: true,
             geminiKeyEnc: true, // not returned, but `!!user.geminiKeyEnc` used for hasGeminiKey
             gmailHistoryId: true,
-            subscriptionStatus: true,
-            subscriptionEndsAt: true,
-            emailsProcessedThisMonth: true,
             fallbackGmailLabelId: true,
           },
         })
@@ -73,14 +62,6 @@ export async function GET(request: NextRequest) {
           }),
         ])
 
-        const trialEndsAt = user.subscriptionStatus === "trialing" && user.subscriptionEndsAt
-          ? user.subscriptionEndsAt.toISOString()
-          : null
-
-        const trialDaysRemaining = trialEndsAt
-          ? Math.max(0, Math.ceil((new Date(trialEndsAt).getTime() - Date.now()) / (1000 * 60 * 60 * 24)))
-          : 0
-
         const settings: UserSettings = {
           autoSortEnabled: user.autoSortEnabled,
           archiveSorted: user.archiveSorted,
@@ -89,10 +70,6 @@ export async function GET(request: NextRequest) {
           hasGeminiKey: !!user.geminiKeyEnc,
           gmailConnected: !!googleAccount?.access_token,
           pushEnabled: !!user.gmailHistoryId,
-          subscriptionStatus: user.subscriptionStatus,
-          subscriptionEndsAt: user.subscriptionEndsAt?.toISOString() || null,
-          trialDaysRemaining,
-          emailsProcessedThisMonth: user.emailsProcessedThisMonth,
           fallbackGmailLabelId: user.fallbackGmailLabelId,
         }
 

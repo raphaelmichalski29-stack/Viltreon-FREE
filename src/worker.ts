@@ -3,10 +3,8 @@ import { Queue, Worker } from "bullmq"
 import { startWorker } from "@/lib/queue"
 import { prisma } from "@/lib/db"
 import { ensureRedis, bullConnection, redis } from "@/lib/redis"
-import { exportSortingLogs } from "@/jobs/export-logs"
 import { renewGmailWatches } from "@/jobs/renew-watches"
 import { checkQueueHealth } from "@/jobs/queue-health-monitor"
-import { sendAlert } from "@/lib/alert"
 
 async function setupPushWatches() {
   if (!process.env.GOOGLE_PROJECT_ID || !process.env.PUBSUB_TOPIC_NAME) {
@@ -54,8 +52,6 @@ async function setupPushWatches() {
   }
 }
 
-let exportWorker: Worker | null = null
-let exportQueue: Queue | null = null
 let renewWorker: Worker | null = null
 let renewQueue: Queue | null = null
 let healthWorker: Worker | null = null
@@ -137,48 +133,6 @@ async function setupWatchRenewScheduler() {
   }
 }
 
-async function setupExportScheduler() {
-  if (!process.env.GITHUB_TOKEN || !process.env.GITHUB_REPO) {
-    console.log("[worker] GitHub export not configured — skipping export schedule")
-    return
-  }
-
-  try {
-    exportQueue = new Queue("log-export", {
-      ...bullConnection(),
-      defaultJobOptions: {
-        removeOnComplete: { age: 86400 },
-        removeOnFail: { age: 86400 },
-      },
-    })
-
-    await exportQueue.upsertJobScheduler("daily-export", {
-      pattern: "0 3 * * *",
-    }, {
-      name: "export-sorting-logs",
-      data: {},
-    })
-
-    exportWorker = new Worker(
-      "log-export",
-      async () => {
-        console.log("[export-worker] Starting daily log export...")
-        const result = await exportSortingLogs()
-        if (result.failed) {
-          console.error(`[export-worker] Export failed: ${result.error}`)
-        } else {
-          console.log(`[export-worker] Exported ${result.exported} logs`)
-        }
-      },
-      { ...bullConnection() },
-    )
-
-    console.log("[worker] Daily log export scheduled (3:00 AM UTC)")
-  } catch (err: any) {
-    console.log(`[worker] Failed to schedule log export: ${err.message}`)
-  }
-}
-
 async function main() {
   console.log("[worker] Starting...")
 
@@ -190,7 +144,6 @@ async function main() {
   setupPushWatches()
 
   if (redisOk) {
-    await setupExportScheduler()
     await setupWatchRenewScheduler()
     await setupQueueHealthMonitor()
   }
@@ -204,8 +157,6 @@ async function main() {
     const { shutdownWorker } = await import("@/lib/queue")
     await shutdownWorker()
     const closers: Array<{ name: string; close: () => Promise<unknown> | unknown }> = [
-      { name: "exportWorker", close: () => exportWorker?.close() },
-      { name: "exportQueue", close: () => exportQueue?.close() },
       { name: "renewWorker", close: () => renewWorker?.close() },
       { name: "renewQueue", close: () => renewQueue?.close() },
       { name: "healthWorker", close: () => healthWorker?.close() },
@@ -218,8 +169,6 @@ async function main() {
         console.error(`[worker] ${c.name} close failed:`, err instanceof Error ? err.message : err)
       }
     }
-    exportWorker = null
-    exportQueue = null
     renewWorker = null
     renewQueue = null
     healthWorker = null
@@ -233,10 +182,5 @@ async function main() {
 
 main().catch((err) => {
   console.error("[worker] Fatal:", err)
-  if (process.env.ALERT_WEBHOOK_URL) {
-    sendAlert("Worker crashed (fatal)", err)
-    setTimeout(() => process.exit(1), 1500)
-  } else {
-    process.exit(1)
-  }
+  process.exit(1)
 })

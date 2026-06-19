@@ -141,11 +141,8 @@ export async function proxy(req: NextRequest) {
     return applyNoStore(pass())
   }
 
-  // Landing page — redirect paying users to dashboard
+  // Root — page.tsx redirects into the app (sign-in -> setup -> dashboard).
   if (path === "/") {
-    if (token && !(token as any).accessDisabled) {
-      return applyNoStore(applyCsp(NextResponse.redirect(new URL("/dashboard", req.url)), csp))
-    }
     return pass()
   }
 

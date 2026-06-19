@@ -202,24 +202,6 @@ export default function SettingsPage() {
       <Card>
         <CardHeader>
           <CardTitle className="text-lg flex items-center gap-2">
-            <Mail className="h-5 w-5" />
-            Usage
-          </CardTitle>
-          <CardDescription>
-            Emails processed this billing period
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <p className="text-2xl font-bold">{settings?.emailsProcessedThisMonth ?? 0}</p>
-          <p className="text-xs text-muted-foreground mt-1">
-            No artificial limits on email sorting.
-          </p>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg flex items-center gap-2">
             <Key className="h-5 w-5" />
             Groq API Key
           </CardTitle>

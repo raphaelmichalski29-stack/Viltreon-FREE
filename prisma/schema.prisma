@@ -47,13 +47,6 @@ model User {
   geminiKeyEnc             String?
   gmailHistoryId           String?
   autoSortEnabled          Boolean   @default(true)
-  stripeCustomerId         String?   @unique
-  stripeSubscriptionId     String?
-  subscriptionStatus       String? // trialing | active | past_due | canceled | incomplete
-  subscriptionEndsAt       DateTime?
-  accessDisabled           Boolean   @default(false)
-  emailsProcessedThisMonth Int       @default(0)
-  emailMonthStartAt        DateTime?
   archiveSorted            Boolean   @default(false)
   sortScope                String    @default("unread")
   sortingRules             String?
@@ -67,13 +60,8 @@ model User {
   sortingLogs SortingLog[]
 
   // Used by jobs/renew-watches.ts and worker.ts:setupPushWatches() to filter
-  // the set of users eligible for live-sort wiring. At 5000+ users a full
-  // scan is ~50ms; this turns it into an index lookup.
-  @@index([autoSortEnabled, accessDisabled])
-  // Used by Stripe webhook to find the User row given a subscription ID.
-  // stripeSubscriptionId is rarely null and never updated after creation, so
-  // a non-unique B-tree index is the right shape.
-  @@index([stripeSubscriptionId])
+  // the set of users eligible for live-sort wiring.
+  @@index([autoSortEnabled])
 }
 
 model VerificationToken {
@@ -100,11 +88,6 @@ model UserLabel {
   @@unique([userId, gmailLabelId])
 }
 
-model ProcessedStripeEvent {
-  id        String   @id
-  createdAt DateTime @default(now())
-}
-
 model SortingLog {
   id           String    @id @default(cuid())
   userId       String
@@ -112,13 +95,7 @@ model SortingLog {
   confidence   Float
   modelUsed    String?
   processedAt  DateTime  @default(now())
-  exportedAt   DateTime?
   user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, processedAt])
-  // Used by the daily export-logs job to find rows that haven't been
-  // archived to GitHub yet. Without this it sequential-scans the entire
-  // SortingLog table every night; at 5000 users / 30 days that's millions
-  // of rows.
-  @@index([exportedAt])
 }

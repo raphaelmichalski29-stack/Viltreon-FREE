@@ -125,20 +125,14 @@ async function processSingleEmail(
     return { processed: 1, labeled: 0, skipped: 1 }
   }
 
-  await prisma.$transaction([
-    prisma.sortingLog.create({
-      data: {
-        userId,
-        labelApplied: safeLabelId,
-        confidence: result.confidence,
-        modelUsed: result.modelUsed,
-      },
-    }),
-    prisma.user.update({
-      where: { id: userId },
-      data: { emailsProcessedThisMonth: { increment: 1 } },
-    }),
-  ])
+  await prisma.sortingLog.create({
+    data: {
+      userId,
+      labelApplied: safeLabelId,
+      confidence: result.confidence,
+      modelUsed: result.modelUsed,
+    },
+  })
 
   const isFallback = safeLabelId === fallback.gmailLabelId || safeLabelId === "INBOX"
   return { processed: 1, labeled: isFallback ? 0 : 1, skipped: isFallback ? 1 : 0 }
@@ -233,20 +227,14 @@ async function processInboxSort(
         const isFallback = safeLabelId === fallback.gmailLabelId || safeLabelId === "INBOX"
 
         try {
-          await prisma.$transaction([
-            prisma.sortingLog.create({
-              data: {
-                userId,
-                labelApplied: safeLabelId,
-                confidence: classification.confidence,
-                modelUsed: classification.modelUsed,
-              },
-            }),
-            prisma.user.update({
-              where: { id: userId },
-              data: { emailsProcessedThisMonth: { increment: 1 } },
-            }),
-          ])
+          await prisma.sortingLog.create({
+            data: {
+              userId,
+              labelApplied: safeLabelId,
+              confidence: classification.confidence,
+              modelUsed: classification.modelUsed,
+            },
+          })
         } catch (err) {
           log.error("batch.sortingLog write failed", {
             userId,

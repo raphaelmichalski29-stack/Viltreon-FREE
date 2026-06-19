@@ -69,90 +69,18 @@ export const authOptions: AuthOptions = {
         return token
       }
 
-      let dbUser
-      try {
-        dbUser = await prisma.user.findUnique({
-          where: { email: token.email },
-          select: { subscriptionStatus: true, subscriptionEndsAt: true, accessDisabled: true },
-        })
-      } catch (err) {
-        // Transient DB error (Neon cold start, network blip). Keep the existing
-        // token rather than signing the user out — returning null here makes
-        // NextAuth treat the session as broken and bounces them to /auth/signin.
-        console.error("[auth.jwt] DB lookup failed, keeping existing token:", err)
-        return token
-      }
-      // The user row no longer exists (genuine deletion). Returning null here
-      // makes NextAuth try to encode a null JWT and throw "JWT Claims Set MUST
-      // be an object". Instead strip access on the token so the session is
-      // gated out (bounced to sign-in / setup) without crashing. A deleted user
-      // who signs in again is recreated by the createUser event.
-      if (!dbUser) {
-        token.accessDisabled = true
-        token.subscriptionStatus = undefined
-        token.subscriptionEndsAt = null
-        return token
-      }
-
-      token.subscriptionStatus = dbUser.subscriptionStatus
-      token.subscriptionEndsAt = dbUser.subscriptionEndsAt?.getTime() ?? null
-      token.accessDisabled = dbUser.accessDisabled
+      // token.sub (the user id) is set at sign-in and persists in the JWT
+      // cookie — there's nothing else to fetch here.
       return token
     },
     async session({ session, token }) {
       if (!token?.email || !session.user) return session
-
-      // session.user.id is the canonical user identifier consumed by every
-      // API route — never drop it even if the supplemental lookup below fails.
+      // session.user.id is the canonical user identifier consumed by every API route.
       session.user.id = token.sub!
-
-      try {
-        const user = await prisma.user.findUnique({
-          where: { email: token.email },
-          select: { subscriptionStatus: true, accessDisabled: true },
-        })
-        if (user) {
-          session.user.subscriptionStatus = user.subscriptionStatus ?? undefined
-          session.user.accessDisabled = user.accessDisabled
-        } else {
-          // Fall back to token-cached values when the row is briefly invisible
-          // (Neon replica lag) so the client doesn't see undefined.
-          session.user.subscriptionStatus = token.subscriptionStatus ?? undefined
-          session.user.accessDisabled = token.accessDisabled
-        }
-      } catch (err) {
-        console.error("[auth.session] DB lookup failed, using token cache:", err)
-        session.user.subscriptionStatus = token.subscriptionStatus ?? undefined
-        session.user.accessDisabled = token.accessDisabled
-      }
-
       return session
     },
   },
   events: {
-    async createUser({ user }) {
-      // The 14-day trial is card-required and runs in Stripe (see
-      // api/stripe/checkout). A brand-new account therefore starts with no
-      // subscription and accessDisabled=true (the schema default): it can
-      // complete setup (connect Gmail, add key, sync labels) but cannot sort
-      // until the user adds a card and the Stripe trial begins. We only seed
-      // the usage counters so settings/usage reads are well-defined before then.
-      if (!user?.id) return
-      try {
-        await prisma.user.update({
-          where: { id: user.id },
-          data: {
-            accessDisabled: false,
-            emailMonthStartAt: new Date(),
-            emailsProcessedThisMonth: 0,
-          },
-        })
-      } catch (err) {
-        // Non-blocking — sign-in still succeeds, the user just lands on /setup.
-        // Log loudly so we notice the regression.
-        console.error("[auth.createUser] Failed to seed new user:", err)
-      }
-    },
     async signIn({ user, account }) {
       if (!account?.access_token || account.type !== "oauth") return
       try {

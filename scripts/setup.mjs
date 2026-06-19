@@ -145,12 +145,6 @@ PUBSUB_VERIFICATION_TOKEN=${PUBSUB_VERIFICATION_TOKEN}
 # --- Redis (blank = built-in in-memory queue; fine for localhost) ---
 REDIS_URL=${REDIS_URL}
 REDIS_PREFIX=gmail-ai
-
-# --- Optional ---
-GITHUB_TOKEN=
-GITHUB_REPO=
-ALERT_WEBHOOK_URL=
-NEXT_PUBLIC_BUG_REPORT_URL=
 `, { mode: 0o600 })
   ok(`OK  Wrote ${ENV_PATH}`)
 
