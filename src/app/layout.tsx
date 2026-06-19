@@ -53,14 +53,10 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        {/* Browser starts DNS + TLS to these origins in parallel with the page
-            parse. Saves ~100-200ms on the first OAuth click and ~50ms on the
-            first Stripe checkout click. dns-prefetch for Groq (we don't
-            originate that traffic; the user's worker does, but the dashboard
-            shows the host in setup links). */}
+        {/* Warm up the Google OAuth origins so the first sign-in click is snappy;
+            dns-prefetch the Groq AI endpoint for the same reason. */}
         <link rel="preconnect" href="https://accounts.google.com" />
         <link rel="preconnect" href="https://oauth2.googleapis.com" />
-        <link rel="preconnect" href="https://api.stripe.com" />
         <link rel="dns-prefetch" href="https://api.groq.com" />
       </head>
       <body className={`${inter.className} ${inter.variable} ${jetbrainsMono.variable} ${playfair.variable} selection:bg-[#D86B5A] selection:text-white`}>
