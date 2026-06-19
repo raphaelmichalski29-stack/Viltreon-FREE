@@ -66,7 +66,9 @@ if (process.env.NODE_ENV === 'production' && !isLocalProdTest) {
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  allowedDevOrigins: ['trident-catchy-nativity.ngrok-free.dev'],
+  // Add your tunnel host here (e.g. an ngrok domain) when testing real-time
+  // push from localhost — see docs/REALTIME.md. Empty by default.
+  allowedDevOrigins: [],
   poweredByHeader: false,
   // Pin the workspace root to this project so Next doesn't mis-infer it from a
   // stray package-lock.json in a parent/home directory (the "multiple lockfiles"
