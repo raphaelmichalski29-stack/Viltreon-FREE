@@ -30,8 +30,10 @@ if (arg === 'setup' || !configured) {
   process.exit(run('node', ['scripts/setup.mjs']))
 }
 
-// Build if there's no production build yet, or if explicitly asked.
-if (arg === 'build' || !existsSync(join(ROOT, '.next'))) {
+// Build if there's no production build yet, or if explicitly asked. We check for
+// .next/BUILD_ID (written only by `next build`) rather than the .next folder —
+// `next dev` also creates .next, but `next start` needs a real production build.
+if (arg === 'build' || !existsSync(join(ROOT, '.next', 'BUILD_ID'))) {
   console.log('Building Viltreon (production, one-time ~30s)...')
   const code = run('npx', ['next', 'build'])
   if (code !== 0) process.exit(code)
