@@ -60,15 +60,11 @@ project folder. (In PowerShell, a local script must be called as `.\viltreon`.)
 Then start the app:
 
 ```bash
-npm run dev        # web app -> http://localhost:3000
+viltreon           # builds once (~30s), then runs in production at http://localhost:3000
 ```
 
-Without Redis (the default local setup) the app sorts **in-process — no separate worker
-needed**. If you configured Redis, also run the worker in a second terminal:
-
-```bash
-npm run worker
-```
+Viltreon runs in **production mode** — light on memory, far gentler than `next dev`, and the
+sort worker runs in-process (no separate worker to start).
 
 Open <http://localhost:3000>, sign in with the Google account you added as a test user,
 add your Groq API key in settings, and define your sorting rules.

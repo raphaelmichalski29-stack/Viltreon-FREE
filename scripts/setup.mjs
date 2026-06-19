@@ -180,15 +180,16 @@ NEXT_PUBLIC_BUG_REPORT_URL=
   warn('|  a public domain. See README -> "Running 24/7".                     |')
   warn('+---------------------------------------------------------------------+')
   log('')
-  log(`Start the app:  ${c.bold}npm run dev${c.reset}   ->  ${c.cyan}http://localhost:3000${c.reset}`)
-  if (REDIS_URL) {
-    log(`Using Redis — also start the worker in a 2nd terminal:  ${c.bold}npm run worker${c.reset}`)
-  } else {
-    log(`${c.dim}In-memory mode: the app sorts in-process — no separate worker needed.${c.reset}`)
-  }
+  log(`Start Viltreon:  ${c.bold}viltreon${c.reset}   ->  ${c.cyan}http://localhost:3000${c.reset}`)
+  log(`${c.dim}Runs in production mode (light on memory). The first start builds once (~30s), then it's instant.${c.reset}`)
   log('')
 
-  if (await yes('Start the app now? (npm run dev)', true)) { rl.close(); run('npm', ['run', 'dev']); return }
+  if (await yes('Build & start Viltreon now? (production)', true)) {
+    rl.close()
+    // Delegate to the launcher so the prod build+start logic lives in one place.
+    run('node', ['scripts/viltreon.mjs'])
+    return
+  }
   rl.close()
 }
 

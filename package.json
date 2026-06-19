@@ -6,7 +6,7 @@
     "viltreon": "scripts/viltreon.mjs"
   },
   "scripts": {
-    "dev": "prisma db push && node --max-old-space-size=6144 ./node_modules/next/dist/bin/next dev",
+    "dev": "prisma db push && next dev",
     "build": "next build",
     "start": "next start",
     "prod": "prisma db push && set LOCAL_PROD_TEST=1 && next build && next start",
