@@ -66,8 +66,8 @@ if (process.env.NODE_ENV === 'production' && !isLocalProdTest) {
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Add your tunnel host here (e.g. an ngrok domain) when testing real-time
-  // push from localhost — see docs/REALTIME.md. Empty by default.
+  // Extra dev origins for the Next.js dev server, if you ever need them.
+  // Empty by default — the local build is served straight from localhost.
   allowedDevOrigins: [],
   poweredByHeader: false,
   // Pin the workspace root to this project so Next doesn't mis-infer it from a

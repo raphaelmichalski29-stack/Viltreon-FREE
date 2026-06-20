@@ -4,11 +4,13 @@
 infrastructure you control — no third-party SaaS sees your inbox. You bring your own
 Groq API key (BYOK); Viltreon reads incoming mail and files it into your labels automatically.
 
-> ⚠️ **Running 24/7 needs an always-on server.** A localhost install only sorts mail
-> while your computer and the app are running. Gmail's real-time push (Google Cloud
-> Pub/Sub) **cannot reach `localhost`** — it requires a public HTTPS endpoint. For
-> continuous, hands-off sorting you must run Viltreon on a server that's up 24/7 with a
-> public domain. See [Running 24/7](#running-247) below.
+> ⚠️ **This open-source build is for running locally.** It sorts your inbox on demand, on
+> your own machine, while the app is running — perfect for trying Viltreon and keeping
+> full control of your data. It does **not** sort 24/7 on its own (a laptop that sleeps
+> doesn't sort email).
+>
+> **Want hands-off, always-on real-time sorting?** That's the hosted version — it runs
+> 24/7 so you don't have to. → **[viltreon.com](https://viltreon.com)**
 
 ---
 
@@ -96,39 +98,17 @@ Gmail-scoped app. The wizard pauses and walks you through it; here it is for ref
    - **Authorized redirect URI:** `http://localhost:3000/api/auth/callback/google`
    - Copy the **Client ID** and **Client Secret** into the wizard (or `.env`).
 
-### Optional: real-time push (Pub/Sub)
-
-Push is what makes sorting instant and continuous. **It does not work on `localhost`**
-(Pub/Sub can only push to a public HTTPS URL). Set it up only when you deploy to a real
-server, or when tunneling localhost (e.g. ngrok) for testing:
-
-```bash
-gcloud pubsub topics create email-sorter-push
-gcloud pubsub subscriptions create email-sorter-push-sub \
-  --topic=email-sorter-push \
-  --push-endpoint=https://YOUR_DOMAIN/api/gmail/webhook \
-  --ack-deadline=60
-```
-
-Then set `GOOGLE_PROJECT_ID` and `PUBSUB_TOPIC_NAME` in `.env`. Without push, the app
-falls back to manual / periodic sync.
-
-**Want instant sorting on your own machine without renting a server?** See
-**[docs/REALTIME.md](docs/REALTIME.md)** — a full ngrok + Pub/Sub walkthrough.
-
 ---
 
-## Running 24/7
+## Want 24/7 sorting? Use the hosted version
 
-A laptop that sleeps doesn't sort email. For always-on, hands-off sorting you need:
+This open-source build sorts on demand, locally. For **always-on, real-time sorting** that
+files every email the moment it arrives — with nothing to deploy, maintain, or keep
+running — use the hosted version:
 
-- A server that runs **24/7** (a small VPS is plenty).
-- A **public domain + HTTPS** (so Gmail Pub/Sub push can reach `/api/gmail/webhook`).
-- The web app **and** the worker running as managed processes (e.g. pm2/systemd).
+**→ [viltreon.com](https://viltreon.com) — 24/7 live sorting, fully managed.**
 
-This repository is set up for the **localhost** experience. Productionizing (reverse
-proxy, TLS, process manager, Pub/Sub push) is your responsibility — deploy it wherever
-you like.
+Same sorting engine, none of the server upkeep.
 
 ---
 
@@ -143,7 +123,6 @@ you like.
 | `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | yes | from Google Cloud (above) |
 | `DATABASE_URL` | yes | local SQLite file, e.g. `file:./dev.db` |
 | `ENCRYPTION_KEY` / `ENCRYPTION_SALT` | yes | auto-generated — **back these up** |
-| `GOOGLE_PROJECT_ID` / `PUBSUB_TOPIC_NAME` | no | only for real-time push (not on localhost) |
 | `REDIS_URL` | no | leave **blank** for the in-memory queue; set it only to use Redis |
 
 Losing `ENCRYPTION_KEY` / `ENCRYPTION_SALT` makes all stored Google tokens
