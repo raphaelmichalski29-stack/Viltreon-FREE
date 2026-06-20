@@ -143,7 +143,6 @@ you like.
 | `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | yes | from Google Cloud (above) |
 | `DATABASE_URL` | yes | local SQLite file, e.g. `file:./dev.db` |
 | `ENCRYPTION_KEY` / `ENCRYPTION_SALT` | yes | auto-generated — **back these up** |
-| `STRIPE_*` | yes to boot | placeholders are fine locally; billing stays off |
 | `GOOGLE_PROJECT_ID` / `PUBSUB_TOPIC_NAME` | no | only for real-time push (not on localhost) |
 | `REDIS_URL` | no | leave **blank** for the in-memory queue; set it only to use Redis |
 
@@ -160,5 +159,6 @@ unrecoverable — every user would have to sign in again. Save them somewhere sa
 
 ## License
 
-See [`LICENSE`](LICENSE). _(If self-hosting a paid/commercial service, note the license
-terms.)_
+**AGPL-3.0** — see [`LICENSE`](LICENSE). You can self-host, modify, and redistribute it
+freely; if you run a modified version as a network service, AGPL §13 requires you to offer
+your users the source of that modified version.
