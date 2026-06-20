@@ -4,9 +4,9 @@ import "./globals.css"
 import { Providers } from "@/components/shared/providers"
 
 // Inter is the app default (applied via .className on <body>). The `variable`
-// option also exposes it as --font-sans; JetBrains Mono is exposed as
-// --font-mono. The cinematic landing page reads both CSS variables instead of
-// loading any external font CDN, which the per-request CSP would block.
+// option also exposes it as --font-sans; JetBrains Mono as --font-mono and
+// Playfair as --font-serif, read via CSS variables instead of an external font
+// CDN, which the per-request CSP would block.
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" })
 const jetbrainsMono = JetBrains_Mono({ subsets: ["latin"], weight: ["400", "500", "700"], variable: "--font-mono" })
 const playfair = Playfair_Display({ subsets: ["latin"], variable: "--font-serif" })
@@ -18,11 +18,12 @@ const playfair = Playfair_Display({ subsets: ["latin"], variable: "--font-serif"
 // (no theme toggle, no useSession, no client-side interaction).
 export const dynamic = "force-dynamic"
 
-// metadataBase makes every relative OG/twitter image URL absolute (required
-// by scrapers); the title template gives subpages "Pricing | Viltreon"-style
-// titles while the landing page keeps its own full title.
+// metadataBase makes every relative OG/twitter image URL absolute (required by
+// scrapers). It resolves against this deployment's own URL, so a self-hosted
+// instance gets correct absolute image links; the title template gives subpages
+// "%s | Viltreon"-style titles.
 export const metadata: Metadata = {
-  metadataBase: new URL("https://viltreon.com"),
+  metadataBase: new URL(process.env.NEXTAUTH_URL || "http://localhost:3000"),
   title: {
     default: "Viltreon - AI Gmail Sorter",
     template: "%s | Viltreon",
@@ -31,7 +32,6 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Viltreon - AI Gmail Sorter",
     description: "Every new email files itself the moment it arrives, by rules you write in plain English. We never store your email content.",
-    url: "https://viltreon.com",
     siteName: "Viltreon",
     type: "website",
     locale: "en_US",

@@ -3,7 +3,6 @@ import { getToken } from "@/lib/secure-token"
 import { getQueue } from "@/lib/queue"
 import { prisma } from "@/lib/db"
 import { getGmailClient, countInboxMessages, getFallbackLabel } from "@/lib/gmail"
-import { checkSubscription } from "@/lib/subscription"
 import { checkRateLimit, rateLimitKey } from "@/lib/rate-limit"
 import { apiError } from "@/lib/api-error"
 
@@ -26,11 +25,6 @@ export async function POST(request: NextRequest) {
         { error: "Too many requests" },
         { status: 429, headers: { "Retry-After": String(Math.ceil((rl.resetAt - Date.now()) / 1000)) } },
       )
-    }
-
-    const sub = await checkSubscription(token.sub)
-    if (!sub.allowed) {
-      return NextResponse.json({ error: "Active subscription required" }, { status: 402 })
     }
 
     const user = await prisma.user.findUnique({

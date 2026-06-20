@@ -35,7 +35,7 @@ export function Sidebar() {
       </nav>
       <div className="p-2 border-t">
         <a
-          href={process.env.NEXT_PUBLIC_BUG_REPORT_URL || "mailto:support@viltreon.com?subject=Bug%20report"}
+          href={process.env.NEXT_PUBLIC_BUG_REPORT_URL || "https://github.com/raphaelmichalski29-stack/Viltreon-FREE/issues"}
           target="_blank"
           rel="noopener noreferrer"
         >

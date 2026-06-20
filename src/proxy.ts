@@ -4,9 +4,9 @@ import crypto from "crypto"
 
 function buildCsp(nonce: string): string {
   // strict-dynamic lets scripts loaded by trusted (nonce'd) scripts inherit trust —
-  // needed for Stripe.js and Next.js framework chunks. Removes the need for an
-  // explicit allowlist of script origins. style-src keeps 'unsafe-inline' because
-  // Tailwind/shadcn emit dynamic style attributes; style-based XSS is bounded.
+  // needed for Next.js framework chunks. Removes the need for an explicit allowlist
+  // of script origins. style-src keeps 'unsafe-inline' because Tailwind/shadcn emit
+  // dynamic style attributes; style-based XSS is bounded.
   const scriptSrc = process.env.NODE_ENV === "development"
     ? `script-src 'self' 'nonce-${nonce}' 'unsafe-eval' 'strict-dynamic'`
     : `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'`
@@ -16,8 +16,7 @@ function buildCsp(nonce: string): string {
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' data: https://lh3.googleusercontent.com",
     "font-src 'self' data:",
-    "connect-src 'self' https://*.stripe.com https://oauth2.googleapis.com",
-    "frame-src https://*.stripe.com https://js.stripe.com https://hooks.stripe.com",
+    "connect-src 'self' https://oauth2.googleapis.com",
     "form-action 'self'",
     "frame-ancestors 'none'",
     "object-src 'none'",
@@ -33,10 +32,9 @@ function applyCsp(response: NextResponse, csp: string): NextResponse {
 
 /**
  * Stop the browser from serving authenticated pages out of its back/forward
- * cache. Without this, hitting the Back button after logout (or after a
- * subscription change in another tab) shows the previous render — stale
- * subscription state, leftover banners, etc. Applied on dynamic routes only;
- * static assets are still cacheable.
+ * cache. Without this, hitting the Back button after logout shows the previous
+ * authenticated render — stale state, leftover banners, etc. Applied on dynamic
+ * routes only; static assets are still cacheable.
  */
 function applyNoStore(response: NextResponse): NextResponse {
   response.headers.set("Cache-Control", "no-store, must-revalidate, private")
@@ -95,8 +93,8 @@ export async function proxy(req: NextRequest) {
   // but a same-origin script on a compromised CDN could fire `fetch(..., {
   // credentials: "include" })` from another origin. Reject when Origin is
   // present AND doesn't match NEXTAUTH_URL. Missing Origin is allowed
-  // (server-to-server callers like Pub/Sub and Stripe — those have their
-  // own signature auth and hit the bypass list below anyway).
+  // (server-to-server callers like Pub/Sub — those have their own signature
+  // auth and hit the bypass list below anyway).
   const stateChanging = req.method !== "GET" && req.method !== "HEAD" && req.method !== "OPTIONS"
   if (stateChanging && path.startsWith("/api/")) {
     const origin = req.headers.get("origin")
@@ -110,14 +108,13 @@ export async function proxy(req: NextRequest) {
 
   // Skip auth lookup for webhook, health, and static-asset paths — they don't
   // need a session. Health must be reachable for external uptime monitors;
-  // webhooks authenticate themselves (Stripe signature, Pub/Sub OIDC/token);
+  // the Gmail webhook authenticates itself (Pub/Sub OIDC/token);
   // any file in /public (images, fonts, robots.txt, etc.) is public by name
   // and should never be gated behind the "redirect to /auth/signin" branch.
   const isPublicAsset = /\.(png|jpe?g|gif|webp|svg|ico|woff2?|ttf|otf|css|js|map|txt|xml|json)$/i.test(path)
   if (
     path.startsWith("/_next") ||
     path.startsWith("/api/auth") ||
-    path.startsWith("/api/stripe/webhook") ||
     path.startsWith("/api/gmail/webhook") ||
     path === "/api/health" ||
     path === "/favicon.ico" ||
@@ -146,26 +143,6 @@ export async function proxy(req: NextRequest) {
     return pass()
   }
 
-  // Pricing — always public, no redirect
-  if (path.startsWith("/pricing")) {
-    return pass()
-  }
-
-  // Legal and trust pages — always public, indexable by search engines, no
-  // auth gate.
-  if (
-    path === "/privacy" ||
-    path === "/terms" ||
-    path === "/billing-terms" ||
-    path === "/website-terms" ||
-    path === "/cookies" ||
-    path === "/about" ||
-    path === "/security" ||
-    path === "/guide"
-  ) {
-    return pass()
-  }
-
   // API routes — require auth. Always no-store: API responses are dynamic
   // by definition and the browser should never re-serve them from cache.
   if (path.startsWith("/api/")) {
@@ -186,8 +163,7 @@ export async function proxy(req: NextRequest) {
   }
 
   // Authenticated protected page (dashboard, setup, etc.) — no-store so a
-  // user can't see a previously-rendered version after logout or after their
-  // subscription state changed in another tab.
+  // user can't see a previously-rendered version after logout.
   return applyNoStore(pass())
 }
 

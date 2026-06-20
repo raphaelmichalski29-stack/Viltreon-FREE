@@ -50,7 +50,7 @@ if (process.env.NODE_ENV === 'production' && !isLocalProdTest) {
 
   // Echo the URL we resolved so a stale ngrok host or wrong .env in prod is
   // immediately visible in the boot log instead of failing mysteriously later
-  // (Stripe callbacks 404ing, OAuth state-cookie mismatches, etc.).
+  // (OAuth state-cookie mismatches, Pub/Sub callbacks 404ing, etc.).
   console.log(`[next.config] NEXTAUTH_URL=${nextauthUrl}`)
 
   // Pub/Sub auth: either OIDC (preferred, CASA tier 3) or the legacy shared token.

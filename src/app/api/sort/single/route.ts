@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server"
 import { getToken } from "@/lib/secure-token"
 import { getQueue } from "@/lib/queue"
 import { prisma } from "@/lib/db"
-import { checkSubscription } from "@/lib/subscription"
 import { checkRateLimit, rateLimitKey } from "@/lib/rate-limit"
 import { apiError } from "@/lib/api-error"
 import { z } from "zod"
@@ -16,11 +15,6 @@ export async function POST(request: NextRequest) {
     const token = await getToken({ req: request })
     if (!token?.sub) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    }
-
-    const sub = await checkSubscription(token.sub)
-    if (!sub.allowed) {
-      return NextResponse.json({ error: "Active subscription required" }, { status: 402 })
     }
 
     const rl = await checkRateLimit(rateLimitKey(token.sub, "sort-single"), {

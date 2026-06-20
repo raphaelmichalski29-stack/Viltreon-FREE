@@ -152,9 +152,9 @@ export default function SettingsPage() {
         const data = await res.json().catch(() => ({}))
         throw new Error(data?.error || "Failed to delete account")
       }
-      // The server has cancelled Stripe, stopped the Gmail watch, deleted all
-      // data, revoked the session, and cleared the auth cookies. A full
-      // navigation to the landing page drops any stale client session state.
+      // The server has stopped the Gmail watch, deleted all data, revoked the
+      // session, and cleared the auth cookies. A full navigation drops any
+      // stale client session state.
       window.location.href = "/"
     } catch (err) {
       toast({ title: "Account deletion failed", description: String(err), variant: "destructive" })
@@ -369,8 +369,7 @@ export default function SettingsPage() {
               <p className="text-xs text-muted-foreground mt-1">
                 Permanently deletes your account and all associated data: your
                 connected Gmail authorization, API key, labels, sorting rules,
-                settings, and sort history. This also cancels your subscription
-                and renders it void. This action cannot be undone.
+                settings, and sort history. This action cannot be undone.
               </p>
             </div>
 
@@ -382,9 +381,8 @@ export default function SettingsPage() {
             ) : (
               <div className="rounded-lg border border-destructive/40 bg-destructive/5 p-4 space-y-3">
                 <p className="text-sm font-medium">
-                  Type <span className="font-mono">DELETE</span> to confirm. Your
-                  subscription will be cancelled and all your data erased. This
-                  cannot be undone.
+                  Type <span className="font-mono">DELETE</span> to confirm. All
+                  your data will be erased. This cannot be undone.
                 </p>
                 <Input
                   value={confirmText}

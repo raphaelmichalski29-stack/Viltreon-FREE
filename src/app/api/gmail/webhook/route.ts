@@ -5,7 +5,6 @@ import { prisma } from "@/lib/db"
 import { redis, ensureRedis } from "@/lib/redis"
 import { verifyWebhookToken, verifyPubSubOidcToken } from "@/lib/push-notifications"
 import { checkRateLimit, rateLimitKey } from "@/lib/rate-limit"
-import { checkSubscription } from "@/lib/subscription"
 import { apiError } from "@/lib/api-error"
 import { logger, requestIdFromHeaders } from "@/lib/logger"
 import { z } from "zod"
@@ -183,18 +182,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: "User not found or no API key, skipping" })
     }
     webhookUserId = user.id
-
-    // checkSubscription has its own 30s Redis cache, so calling it on the
-    // hot path is cheap (1-2ms typical). Keeping it serialized after the
-    // user lookup because it needs user.id; the lookup itself can't run
-    // before we know which user the webhook is for.
-    const sub = await checkSubscription(user.id)
-    if (!sub.allowed) {
-      // Permanent-skip from Pub/Sub's point of view: a no-subscription user won't
-      // become valid by retrying the same push. Return 200 to stop the retry storm.
-      await recordOutcome("no_subscription")
-      return NextResponse.json({ message: "Subscription required, skipping" })
-    }
 
     if (!user.autoSortEnabled) {
       await recordOutcome("autosort_disabled")

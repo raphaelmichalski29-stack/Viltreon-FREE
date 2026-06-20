@@ -125,12 +125,6 @@ function SignInInner() {
             deletes, or composes anything, and your email is never stored.
           </div>
 
-          <p className="mt-5 text-xs text-[#5A5753] text-center">
-            By continuing, you agree to our{" "}
-            <Link href="/privacy" className="underline hover:text-[#2C2A28]">Privacy Policy</Link>
-            {" "}and{" "}
-            <Link href="/terms" className="underline hover:text-[#2C2A28]">Terms of Service</Link>.
-          </p>
         </div>
       </main>
     </div>
